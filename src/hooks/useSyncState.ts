@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { type Team, type Envelope, DEFAULT_TEAMS, DEFAULT_ENVELOPES } from '../utils/defaults';
+import { type Team, type Envelope, type Category, DEFAULT_TEAMS, DEFAULT_ENVELOPES, DEFAULT_CATEGORIES } from '../utils/defaults';
 import { playSound } from '../utils/audio';
 
 export interface GameState {
@@ -41,6 +41,11 @@ export function useSyncState(_role: 'public' | 'admin') {
     return saved ? JSON.parse(saved) : [100, 150, 200, 250];
   });
 
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const saved = localStorage.getItem('direfare_categories');
+    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
+  });
+
   // Reference for BroadcastChannel
   const channelRef = useRef<BroadcastChannel | null>(null);
 
@@ -59,6 +64,7 @@ export function useSyncState(_role: 'public' | 'admin') {
           if (payload.activeEnvelopeId !== undefined) setActiveEnvelopeId(payload.activeEnvelopeId);
           if (payload.animationStep !== undefined) setAnimationStep(payload.animationStep);
           if (payload.pointLevels) setPointLevels(payload.pointLevels);
+          if (payload.categories) setCategories(payload.categories);
           break;
 
         case 'TRIGGER_OPEN_ENVELOPE':
@@ -119,6 +125,9 @@ export function useSyncState(_role: 'public' | 'admin') {
       if (e.key === 'direfare_point_levels' && e.newValue) {
         setPointLevels(JSON.parse(e.newValue));
       }
+      if (e.key === 'direfare_categories' && e.newValue) {
+        setCategories(JSON.parse(e.newValue));
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -155,6 +164,15 @@ export function useSyncState(_role: 'public' | 'admin') {
     channelRef.current?.postMessage({
       type: 'SYNC_STATE',
       payload: { pointLevels: newLevels }
+    });
+  };
+
+  const updateCategories = (newCategories: Category[]) => {
+    setCategories(newCategories);
+    localStorage.setItem('direfare_categories', JSON.stringify(newCategories));
+    channelRef.current?.postMessage({
+      type: 'SYNC_STATE',
+      payload: { categories: newCategories }
     });
   };
 
@@ -245,9 +263,11 @@ export function useSyncState(_role: 'public' | 'admin') {
     animationStep,
     isMuted,
     pointLevels,
+    categories,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
+    updateCategories,
     openEnvelope,
     closeEnvelope,
     changeAnimationStep,

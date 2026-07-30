@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Award, Play, Eye, X, Check } from 'lucide-react';
-import { type Envelope, type Team } from '../utils/defaults';
+import { type Envelope, type Team, type Category } from '../utils/defaults';
 
 interface EnvelopeWidgetProps {
   envelope: Envelope;
   teams: Team[];
+  categories: Category[];
   isActive: boolean;
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   onOpen: () => void;
@@ -19,6 +20,7 @@ interface EnvelopeWidgetProps {
 export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   envelope,
   teams,
+  categories,
   isActive,
   animationStep,
   onOpen,
@@ -36,12 +38,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
     }
   }, [isActive]);
 
-  const categoryColors = {
-    dire: '#f59e0b',
-    fare: '#10b981',
-    indovinare: '#3b82f6'
-  };
-  const themeColor = categoryColors[envelope.category] || '#d4af37';
+  const categoryItem = categories.find(c => c.key === envelope.category);
+  const themeColor = categoryItem ? categoryItem.color : '#d4af37';
+  const categoryName = categoryItem ? categoryItem.name : envelope.category;
 
   // Handle envelope clicks based on role/state
   const handleEnvelopeClick = () => {
@@ -109,7 +108,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
               : 'text-white/80 border-white/15'
           }`}>
             <h3 className="text-xs md:text-sm font-bold tracking-wider text-slate-100 uppercase truncate drop-shadow">
-              {envelope.category}
+              {categoryName}
             </h3>
           </div>
         </div>
@@ -302,7 +301,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 {/* BOTTOM BRANDING LABELS */}
                 <div className="absolute bottom-5 inset-x-0 flex flex-col items-center justify-end z-25 text-center pointer-events-none">
                   <h3 className="font-cinzel text-xl font-bold tracking-wider text-slate-100">
-                    {envelope.category.toUpperCase()}
+                    {categoryName.toUpperCase()}
                   </h3>
                   <div className="w-16 h-1 mt-1 rounded-full" style={{ backgroundColor: themeColor }} />
                 </div>

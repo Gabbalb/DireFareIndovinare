@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useSyncState } from './hooks/useSyncState';
 import { EnvelopeWidget } from './components/EnvelopeWidget';
-import { type Team, type Envelope } from './utils/defaults';
+import { type Team, type Envelope, type Category } from './utils/defaults';
 
 function App() {
   const [route, setRoute] = useState(window.location.hash || '#/');
@@ -25,6 +25,7 @@ function App() {
   const {
     teams,
     envelopes,
+    categories,
     activeEnvelopeId,
     animationStep,
     isMuted,
@@ -32,6 +33,7 @@ function App() {
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
+    updateCategories,
     openEnvelope,
     closeEnvelope,
     changeAnimationStep,
@@ -75,6 +77,7 @@ function App() {
       <AdminPanel 
         teams={teams}
         envelopes={envelopes}
+        categories={categories}
         activeEnvelopeId={activeEnvelopeId}
         animationStep={animationStep}
         isMuted={isMuted}
@@ -82,6 +85,7 @@ function App() {
         updateTeams={updateTeams}
         updateEnvelopes={updateEnvelopes}
         updatePointLevels={updatePointLevels}
+        updateCategories={updateCategories}
         openEnvelope={openEnvelope}
         closeEnvelope={closeEnvelope}
         changeAnimationStep={changeAnimationStep}
@@ -97,6 +101,7 @@ function App() {
     <PublicProjectionView 
       teams={teams}
       envelopes={envelopes}
+      categories={categories}
       activeEnvelopeId={activeEnvelopeId}
       animationStep={animationStep}
       isMuted={isMuted}
@@ -115,6 +120,7 @@ function App() {
 interface PublicProps {
   teams: Team[];
   envelopes: Envelope[];
+  categories: Category[];
   activeEnvelopeId: string | null;
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   isMuted: boolean;
@@ -128,6 +134,7 @@ interface PublicProps {
 const PublicProjectionView: React.FC<PublicProps> = ({
   teams,
   envelopes,
+  categories,
   activeEnvelopeId,
   animationStep,
   isMuted,
@@ -186,11 +193,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
         {/* Envelopes Grid Display sorted in vertical columns per category */}
         <div className="flex-1 flex flex-col justify-center my-6">
           <div className="flex flex-wrap justify-center gap-6 lg:gap-8 items-start">
-            {[
-              { key: 'dire', name: 'DIRE', color: '#f59e0b' },
-              { key: 'fare', name: 'FARE', color: '#10b981' },
-              { key: 'indovinare', name: 'INDOVINARE', color: '#3b82f6' }
-            ].map(cat => {
+            {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
                 .sort((a, b) => a.points - b.points);
@@ -219,6 +222,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                           key={env.id}
                           envelope={env}
                           teams={teams}
+                          categories={categories}
                           isActive={isActive}
                           animationStep={animationStep}
                           onOpen={() => openEnvelope(env.id)}
@@ -291,6 +295,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
 interface AdminProps {
   teams: Team[];
   envelopes: Envelope[];
+  categories: Category[];
   activeEnvelopeId: string | null;
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   isMuted: boolean;
@@ -298,6 +303,7 @@ interface AdminProps {
   updateTeams: (teams: Team[]) => void;
   updateEnvelopes: (envelopes: Envelope[]) => void;
   updatePointLevels: (levels: number[]) => void;
+  updateCategories: (categories: Category[]) => void;
   openEnvelope: (id: string) => void;
   closeEnvelope: () => void;
   changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
@@ -310,6 +316,7 @@ interface AdminProps {
 const AdminPanel: React.FC<AdminProps> = ({
   teams,
   envelopes,
+  categories,
   activeEnvelopeId,
   animationStep,
   isMuted,
@@ -317,6 +324,7 @@ const AdminPanel: React.FC<AdminProps> = ({
   updateTeams,
   updateEnvelopes,
   updatePointLevels,
+  updateCategories,
   openEnvelope,
   closeEnvelope,
   changeAnimationStep,
@@ -343,6 +351,25 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isEnvelopeModalOpen, setIsEnvelopeModalOpen] = useState(false);
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
+  const [localCategories, setLocalCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    if (isCategoryModalOpen) {
+      setLocalCategories(categories);
+    }
+  }, [isCategoryModalOpen, categories]);
+
+  const handleLocalCategoryChange = (key: 'dire' | 'fare' | 'indovinare', field: 'name' | 'color', val: string) => {
+    setLocalCategories(prev => prev.map(c => c.key === key ? { ...c, [field]: val } : c));
+  };
+
+  const saveCategoriesConfig = () => {
+    updateCategories(localCategories);
+    setIsCategoryModalOpen(false);
+    alert("Colonne personalizzate salvate con successo!");
+  };
 
   // Editing targets
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
@@ -690,11 +717,7 @@ const AdminPanel: React.FC<AdminProps> = ({
         {/* Specular centered columns board */}
         <div className="flex-1 flex flex-col justify-center my-4">
           <div className="flex flex-wrap justify-center gap-6 lg:gap-8 items-start">
-            {[
-              { key: 'dire', name: 'DIRE', color: '#f59e0b' },
-              { key: 'fare', name: 'FARE', color: '#10b981' },
-              { key: 'indovinare', name: 'INDOVINARE', color: '#3b82f6' }
-            ].map(cat => {
+            {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
                 .sort((a, b) => a.points - b.points);
@@ -991,6 +1014,14 @@ const AdminPanel: React.FC<AdminProps> = ({
               >
                 <RefreshCw size={12} />
                 <span>Punteggi Griglia</span>
+              </button>
+
+              <button
+                onClick={() => setIsCategoryModalOpen(true)}
+                className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+              >
+                <Settings size={12} />
+                <span>Personalizza Colonne</span>
               </button>
 
               <button
@@ -1325,6 +1356,87 @@ const AdminPanel: React.FC<AdminProps> = ({
                 <p className="text-[8.5px] text-slate-500 leading-normal text-center">
                   ⚠️ Attenzione: "Rigenera Intera Griglia" eliminerà TUTTI i testi correnti e creerà un tabellone vuoto pulito per ciascuna squadra.
                 </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* D. PERSONALIZZA COLONNE / CATEGORIE MODAL */}
+      <AnimatePresence>
+        {isCategoryModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCategoryModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl z-10 text-slate-100"
+            >
+              <h3 className="font-cinzel text-lg font-bold tracking-wider text-slate-100 border-b border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                <Settings size={18} className="text-indigo-400" />
+                PERSONALIZZA COLONNE
+              </h3>
+              
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+                {localCategories.map((cat) => (
+                  <div key={cat.key} className="p-3 bg-slate-950/40 rounded-xl border border-slate-850 space-y-3">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                      Colonna {cat.key === 'dire' ? '1' : cat.key === 'fare' ? '2' : '3'} (Key: {cat.key})
+                    </span>
+                    
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-[9px] text-slate-500 font-bold block mb-1">Nome Colonna</label>
+                        <input
+                          type="text"
+                          value={cat.name}
+                          onChange={(e) => handleLocalCategoryChange(cat.key, 'name', e.target.value)}
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-850 rounded-xl focus:outline-none focus:border-indigo-500 text-slate-200 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] text-slate-500 font-bold block mb-1">Colore Colonna</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={cat.color}
+                            onChange={(e) => handleLocalCategoryChange(cat.key, 'color', e.target.value)}
+                            className="w-10 h-8 bg-slate-950 border border-slate-850 rounded-xl cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            value={cat.color}
+                            onChange={(e) => handleLocalCategoryChange(cat.key, 'color', e.target.value)}
+                            className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-850 rounded-xl focus:outline-none focus:border-indigo-500 text-slate-300 font-mono text-[11px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-2.5 mt-6 border-t border-slate-800 pt-4">
+                <button
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-450 font-semibold rounded-xl text-xs cursor-pointer"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={saveCategoriesConfig}
+                  className="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white font-bold rounded-xl text-xs cursor-pointer flex items-center gap-1 shadow-md"
+                >
+                  <Check size={14} />
+                  <span>Salva Colonne</span>
+                </button>
               </div>
             </motion.div>
           </div>

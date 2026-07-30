@@ -15,6 +15,18 @@ export interface Envelope {
   isOpened: boolean;
 }
 
+export interface Category {
+  key: 'dire' | 'fare' | 'indovinare';
+  name: string;
+  color: string;
+}
+
+export const DEFAULT_CATEGORIES: Category[] = [
+  { key: 'dire', name: 'Dire', color: '#f59e0b' },
+  { key: 'fare', name: 'Fare', color: '#10b981' },
+  { key: 'indovinare', name: 'Indovinare', color: '#3b82f6' }
+];
+
 export const DEFAULT_TEAMS: Team[] = [
   { id: 'team-red', name: 'Squadra Rossa', color: '#ef4444', score: 0 },
   { id: 'team-blue', name: 'Squadra Blu', color: '#3b82f6', score: 0 },
