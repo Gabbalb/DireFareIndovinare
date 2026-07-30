@@ -5,20 +5,20 @@ import { type Envelope, type Team } from '../utils/defaults';
 
 interface EnvelopeWidgetProps {
   envelope: Envelope;
-  team: Team | null;
+  teams: Team[];
   isActive: boolean;
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   onOpen: () => void;
   onStepChange: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
   onClose: () => void;
-  onMarkAsOpened: (id: string, wasSuccessful: boolean, awardPoints: number) => void;
+  onMarkAsOpened: (id: string, wasSuccessful: boolean, awardPoints: number, winningTeamId: string | null) => void;
   role: 'public' | 'admin';
   displayLabel?: string;
 }
 
 export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   envelope,
-  team,
+  teams,
   isActive,
   animationStep,
   onOpen,
@@ -28,7 +28,20 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   role,
   displayLabel
 }) => {
-  const teamColor = team ? team.color : '#d4af37'; // Default gold
+  const [showTeamSelect, setShowTeamSelect] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isActive) {
+      setShowTeamSelect(false);
+    }
+  }, [isActive]);
+
+  const categoryColors = {
+    dire: '#f59e0b',
+    fare: '#10b981',
+    indovinare: '#3b82f6'
+  };
+  const themeColor = categoryColors[envelope.category] || '#d4af37';
 
   // Handle envelope clicks based on role/state
   const handleEnvelopeClick = () => {
@@ -50,8 +63,8 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
             : 'border-white/10'
         }`}
         style={{
-          backgroundColor: envelope.isOpened ? '#121420' : teamColor,
-          boxShadow: !envelope.isOpened ? `0 8px 30px ${teamColor}30, inset 0 2px 4px rgba(255,255,255,0.2)` : 'none',
+          backgroundColor: envelope.isOpened ? '#121420' : themeColor,
+          boxShadow: !envelope.isOpened ? `0 8px 30px ${themeColor}30, inset 0 2px 4px rgba(255,255,255,0.2)` : 'none',
         }}
         whileHover={!envelope.isOpened ? { scale: 1.03 } : {}}
         whileTap={!envelope.isOpened ? { scale: 0.98 } : {}}
@@ -96,7 +109,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
               : 'text-white/80 border-white/15'
           }`}>
             <h3 className="text-xs md:text-sm font-bold tracking-wider text-slate-100 uppercase truncate drop-shadow">
-              {team ? team.name : 'Busta Libera'}
+              {envelope.category}
             </h3>
           </div>
         </div>
@@ -141,15 +154,15 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 layoutId={`envelope-wrapper-${envelope.id}`}
                 className="relative w-full max-w-md md:max-w-xl aspect-[3/2] rounded-2xl border shadow-2xl flex flex-col justify-between overflow-visible perspective-1000 transform-style-3d"
                 style={{
-                  backgroundColor: teamColor,
+                  backgroundColor: themeColor,
                   borderColor: 'rgba(255, 255, 255, 0.15)',
-                  boxShadow: `0 15px 50px ${teamColor}35, 0 0 100px rgba(0,0,0,0.85)`,
+                  boxShadow: `0 15px 50px ${themeColor}35, 0 0 100px rgba(0,0,0,0.85)`,
                 }}
               >
                 {/* ENVELOPE BACKSIDE GRAPHICS */}
                 <div 
                   className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/50 rounded-2xl overflow-hidden pointer-events-none"
-                  style={{ backgroundColor: teamColor }}
+                  style={{ backgroundColor: themeColor }}
                 />
 
                 {/* LEFT FLAP */}
@@ -175,7 +188,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   className="absolute inset-x-0 bottom-0 h-2/3 border-t border-black/10 pointer-events-none z-10"
                   style={{
                     clipPath: 'polygon(0% 100%, 50% 30%, 100% 100%)',
-                    backgroundColor: teamColor,
+                    backgroundColor: themeColor,
                     backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.1))',
                     borderTop: '1px solid rgba(255, 255, 255, 0.15)'
                   }}
@@ -259,7 +272,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   className="absolute inset-x-0 top-0 h-1/2 origin-top transform-style-3d pointer-events-none"
                   style={{
                     clipPath: 'polygon(0% 0%, 50% 60%, 100% 0%)',
-                    backgroundColor: teamColor,
+                    backgroundColor: themeColor,
                     backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(0,0,0,0.3))',
                     borderBottom: '2.5px solid rgba(255,255,255,0.25)',
                     backfaceVisibility: 'hidden',
@@ -277,7 +290,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   className="absolute inset-x-0 -top-1/2 h-1/2 origin-bottom pointer-events-none transform-style-3d"
                   style={{
                     clipPath: 'polygon(0% 100%, 50% 40%, 100% 100%)',
-                    backgroundColor: teamColor,
+                    backgroundColor: themeColor,
                     backgroundImage: 'linear-gradient(to top, rgba(255,255,255,0.2), rgba(0,0,0,0.25))',
                     borderBottom: '1px solid rgba(255,255,255,0.15)',
                   }}
@@ -289,9 +302,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 {/* BOTTOM BRANDING LABELS */}
                 <div className="absolute bottom-5 inset-x-0 flex flex-col items-center justify-end z-25 text-center pointer-events-none">
                   <h3 className="font-cinzel text-xl font-bold tracking-wider text-slate-100">
-                    {team ? team.name : 'Busta Libera'}
+                    {envelope.category.toUpperCase()}
                   </h3>
-                  <div className="w-16 h-1 mt-1 rounded-full" style={{ backgroundColor: teamColor }} />
+                  <div className="w-16 h-1 mt-1 rounded-full" style={{ backgroundColor: themeColor }} />
                 </div>
 
                 {/* WAX SEAL (GOLDEN BUTTON, TRIGGERS OPENING) */}
@@ -307,8 +320,8 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                         onClick={() => onStepChange('opened')}
                         className="w-16 h-16 rounded-full flex flex-col items-center justify-center border-2 border-amber-300 shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                         style={{
-                          background: `radial-gradient(circle, #f3e5ab, ${teamColor})`,
-                          boxShadow: `0 0 35px ${teamColor}`,
+                          background: `radial-gradient(circle, #f3e5ab, ${themeColor})`,
+                          boxShadow: `0 0 35px ${themeColor}`,
                         }}
                       >
                         <Play size={20} className="text-slate-950 fill-slate-950 ml-1" />
@@ -345,22 +358,51 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
 
                 {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
                 {animationStep === 'revealed' && (
-                  <div className="flex gap-3 bg-slate-900/90 backdrop-blur-sm p-2 rounded-full border border-slate-700">
-                    <button
-                      onClick={() => onMarkAsOpened(envelope.id, true, envelope.points)}
-                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
-                    >
-                      <Check size={16} />
-                      <span>Sfida Superata (+{envelope.points})</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => onMarkAsOpened(envelope.id, false, 0)}
-                      className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
-                    >
-                      <X size={16} />
-                      <span>Sfida Fallita (0 pt)</span>
-                    </button>
+                  <div className="flex flex-col items-center gap-3">
+                    {!showTeamSelect ? (
+                      <div className="flex gap-3 bg-slate-900/90 backdrop-blur-sm p-2 rounded-full border border-slate-700">
+                        <button
+                          onClick={() => setShowTeamSelect(true)}
+                          className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
+                        >
+                          <Check size={16} />
+                          <span>Sfida Superata</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => onMarkAsOpened(envelope.id, false, 0, null)}
+                          className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
+                        >
+                          <X size={16} />
+                          <span>Sfida Fallita</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 bg-slate-900/95 backdrop-blur-sm p-4 rounded-2xl border border-slate-700 max-w-md w-full">
+                        <span className="text-xs font-bold text-slate-350 tracking-wider">CHI HA VINTO I {envelope.points} PUNTI?</span>
+                        <div className="flex flex-wrap justify-center gap-2 mt-1">
+                          {teams.map(team => (
+                            <button
+                              key={team.id}
+                              onClick={() => onMarkAsOpened(envelope.id, true, envelope.points, team.id)}
+                              className="px-4 py-2 border rounded-full text-xs font-bold text-white transition-all shadow hover:brightness-110 active:scale-95"
+                              style={{
+                                backgroundColor: team.color,
+                                borderColor: `${team.color}50`
+                              }}
+                            >
+                              {team.name}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => setShowTeamSelect(false)}
+                          className="mt-2 text-[10px] text-slate-500 hover:text-slate-400 font-bold uppercase tracking-wider"
+                        >
+                          &larr; Indietro
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

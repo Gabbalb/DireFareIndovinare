@@ -7,7 +7,7 @@ export interface Team {
 
 export interface Envelope {
   id: string;
-  teamId: string | null;
+  category: 'dire' | 'fare' | 'indovinare';
   label: string;
   points: number;
   title: string;
@@ -23,19 +23,19 @@ export const DEFAULT_TEAMS: Team[] = [
 ];
 
 export const DEFAULT_ENVELOPES: Envelope[] = [
-  // SQUADRA ROSSA
+  // CATEGORIA: DIRE
   {
-    id: 'env-red-100',
-    teamId: 'team-red',
+    id: 'env-dire-100',
+    category: 'dire',
     label: 'Busta 1',
     points: 100,
     title: 'DIRE - La Voce da Papera',
-    content: 'Canta il ritornello di una canzone famosa utilizzando esclusivamente la voce da papera! La tua squadra deve indovinare il titolo entro 30 secondi.',
+    content: 'Canta il ritornello di una canzone famosa usando esclusivamente la voce da papera! La tua squadra deve indovinarla entro 30 secondi.',
     isOpened: false
   },
   {
-    id: 'env-red-150',
-    teamId: 'team-red',
+    id: 'env-dire-150',
+    category: 'dire',
     label: 'Busta 2',
     points: 150,
     title: 'DIRE - Scioglilingua di Fuoco',
@@ -43,135 +43,97 @@ export const DEFAULT_ENVELOPES: Envelope[] = [
     isOpened: false
   },
   {
-    id: 'env-red-200',
-    teamId: 'team-red',
+    id: 'env-dire-200',
+    category: 'dire',
     label: 'Busta 3',
     points: 200,
+    title: 'DIRE - La Bugia Credibile',
+    content: 'Racconta un aneddoto assurdo inventato sul momento. Gli avversari ti faranno 3 domande rapide e dovranno decidere entro 30 secondi se stai dicendo il vero o il falso.',
+    isOpened: false
+  },
+  {
+    id: 'env-dire-250',
+    category: 'dire',
+    label: 'Busta 4',
+    points: 250,
+    title: 'DIRE - L\'Alfabeto al Contrario',
+    content: 'Pronuncia ad alta voce le lettere dell\'alfabeto italiano al contrario (dalla Z alla A) in soli 20 secondi, senza fare pause superiori a 1 secondo.',
+    isOpened: false
+  },
+
+  // CATEGORIA: FARE
+  {
+    id: 'env-fare-100',
+    category: 'fare',
+    label: 'Busta 1',
+    points: 100,
     title: 'FARE - La Flessione Poetica',
     content: 'Esegui 5 flessioni consecutive. Durante ciascuna flessione, recita ad alta voce un verso inventato sul momento che faccia rima con la parola "Busta"!',
     isOpened: false
   },
   {
-    id: 'env-red-250',
-    teamId: 'team-red',
-    label: 'Busta 4',
-    points: 250,
-    title: 'FARE - Il Mimo della Pasticceria',
-    content: 'Mima esclusivamente con i gesti (senza parlare) l\'atto di "preparare una torta nuziale gigante che sta per crollare". La squadra deve indovinare entro 45 secondi.',
-    isOpened: false
-  },
-
-  // SQUADRA BLU
-  {
-    id: 'env-blue-100',
-    teamId: 'team-blue',
-    label: 'Busta 1',
-    points: 100,
-    title: 'DIRE - La Sfida dei 5 Secondi',
-    content: 'Elenca ad alta voce 5 oggetti di metallo che puoi trovare in cucina e 5 parole che contengono due "Z", il tutto in soli 10 secondi complessivi!',
-    isOpened: false
-  },
-  {
-    id: 'env-blue-150',
-    teamId: 'team-blue',
+    id: 'env-fare-150',
+    category: 'fare',
     label: 'Busta 2',
     points: 150,
-    title: 'DIRE - Titoli al Contrario',
-    content: 'Fai indovinare alla tua squadra 3 titoli di film famosi pronunciando le parole al contrario (es. "Anelli degli signore Il"). Hai 30 secondi!',
-    isOpened: false
-  },
-  {
-    id: 'env-blue-200',
-    teamId: 'team-blue',
-    label: 'Busta 3',
-    points: 200,
     title: 'FARE - L\'Equilibrio Cieco',
     content: 'Rimani in equilibrio su una sola gamba, con le braccia tese in avanti e gli occhi completamente chiusi, per almeno 30 secondi senza toccare terra.',
     isOpened: false
   },
   {
-    id: 'env-blue-250',
-    teamId: 'team-blue',
-    label: 'Busta 4',
-    points: 250,
-    title: 'FARE - Il Mimo degli Opposti',
-    content: 'Mima un subacqueo che cerca di sfuggire a uno squalo gigante al rallentatore, usando solo espressioni del viso e movimenti corporali. Limite: 45 secondi.',
-    isOpened: false
-  },
-
-  // SQUADRA VERDE
-  {
-    id: 'env-green-100',
-    teamId: 'team-green',
-    label: 'Busta 1',
-    points: 100,
-    title: 'DIRE - Il Colore della Mente',
-    content: 'Elenca 7 oggetti di colore verde che puoi trovare in un giardino e 5 animali che volano, il tutto entro 12 secondi senza esitazioni.',
-    isOpened: false
-  },
-  {
-    id: 'env-green-150',
-    teamId: 'team-green',
-    label: 'Busta 2',
-    points: 150,
-    title: 'DIRE - La Bugia Credibile',
-    content: 'Racconta un aneddoto assurdo e inventato sul momento. Gli avversari devono farti 3 domande rapide e decidere entro 30 secondi se stai dicendo il vero o il falso.',
-    isOpened: false
-  },
-  {
-    id: 'env-green-200',
-    teamId: 'team-green',
+    id: 'env-fare-200',
+    category: 'fare',
     label: 'Busta 3',
     points: 200,
     title: 'FARE - La Torre di Bicchieri',
-    content: 'Costruisci una piramide di bicchieri di plastica alta 5 livelli (15 bicchieri alla base e salire) in meno di 30 secondi, usando esclusivamente la mano sinistra (o destra se sei mancino).',
+    content: 'Costruisci una piramide di bicchieri di plastica alta 5 livelli (15 bicchieri alla base) in meno di 30 secondi, usando solo la mano non dominante.',
     isOpened: false
   },
   {
-    id: 'env-green-250',
-    teamId: 'team-green',
-    label: 'Busta 4',
-    points: 250,
-    title: 'FARE - Il Direttore D\'Orchestra',
-    content: 'Dirigi la tua squadra nel cantare un coro natalizio o popolare usando solo le mani per indicare il volume (più alto/silenzio) e la velocità. La performance deve durare 30 secondi.',
-    isOpened: false
-  },
-
-  // SQUADRA GIALLA
-  {
-    id: 'env-yellow-100',
-    teamId: 'team-yellow',
-    label: 'Busta 1',
-    points: 100,
-    title: 'DIRE - La Barzelletta Seria',
-    content: 'Racconta una barzelletta divertente agli avversari. Per ottenere i punti, devi far ridere almeno uno di loro mantenendo un viso completamente serio e impassibile.',
-    isOpened: false
-  },
-  {
-    id: 'env-yellow-150',
-    teamId: 'team-yellow',
-    label: 'Busta 2',
-    points: 150,
-    title: 'DIRE - L\'Alfabeto al Contrario',
-    content: 'Dici ad alta voce le lettere dell\'alfabeto italiano al contrario (dalla Z alla A) entro 20 secondi, senza consultare fogli o fare pause superiori a 1 secondo.',
-    isOpened: false
-  },
-  {
-    id: 'env-yellow-200',
-    teamId: 'team-yellow',
-    label: 'Busta 3',
-    points: 200,
-    title: 'FARE - La Statua Vivente',
-    content: 'Assumi una posa da statua eroica indicata dagli avversari. Rimanete completamente immobile per 45 secondi mentre loro provano a farti ridere facendoti smorfie (senza toccarti).',
-    isOpened: false
-  },
-  {
-    id: 'env-yellow-250',
-    teamId: 'team-yellow',
+    id: 'env-fare-250',
+    category: 'fare',
     label: 'Busta 4',
     points: 250,
     title: 'FARE - Il Disegno Cieco',
-    content: 'Fatti bendare gli occhi. Disegna su un foglio o lavagna "un gatto che va in bicicletta" guidato esclusivamente dalle indicazioni vocali della tua squadra. Limite: 45 secondi.',
+    content: 'Fatti bendare gli occhi. Disegna su una lavagna o foglio "un gatto che va in bicicletta" guidato esclusivamente dalle indicazioni vocali della tua squadra. Limite: 45 secondi.',
+    isOpened: false
+  },
+
+  // CATEGORIA: INDOVINARE
+  {
+    id: 'env-indovinare-100',
+    category: 'indovinare',
+    label: 'Busta 1',
+    points: 100,
+    title: 'INDOVINARE - La Mente Sincrona',
+    content: 'Due giocatori della squadra devono contare fino a 3 e pronunciare contemporaneamente una parola basata su un indizio dato dagli avversari (es. "qualcosa di freddo"). Devono dire la stessa parola per vincere.',
+    isOpened: false
+  },
+  {
+    id: 'env-indovinare-150',
+    category: 'indovinare',
+    label: 'Busta 2',
+    points: 150,
+    title: 'INDOVINARE - Mimo al Contrario',
+    content: 'Un giocatore mima un\'azione quotidiana al contrario (es. sbucciare una banana partendo dalla fine). La squadra deve indovinare l\'azione corretta entro 45 secondi.',
+    isOpened: false
+  },
+  {
+    id: 'env-indovinare-200',
+    category: 'indovinare',
+    label: 'Busta 3',
+    points: 200,
+    title: 'INDOVINARE - Parole Proibite',
+    content: 'Fai indovinare alla tua squadra la parola "PROIETTORE" senza usare le parole vietate: cinema, schermo, luce, presentare, video. Tempo massimo: 45 secondi.',
+    isOpened: false
+  },
+  {
+    id: 'env-indovinare-250',
+    category: 'indovinare',
+    label: 'Busta 4',
+    points: 250,
+    title: 'INDOVINARE - Il Ritmo Battuto',
+    content: 'Batti il ritmo di 3 canzoni famose solo con le mani su un tavolo. La tua squadra deve indovinarne almeno 2 per superare la prova. Limite: 60 secondi.',
     isOpened: false
   }
 ];
