@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Volume2, VolumeX, Shield, Users, Mail, RotateCcw, 
@@ -341,11 +341,55 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const [showAdminControllerTeamSelect, setShowAdminControllerTeamSelect] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!activeEnvelopeId) {
       setShowAdminControllerTeamSelect(false);
     }
   }, [activeEnvelopeId]);
+
+  const exportGameSetup = () => {
+    const dataStr = JSON.stringify({
+      teams,
+      envelopes,
+      categories,
+      pointLevels
+    }, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = 'direfare_setup.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const importGameSetup = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader();
+    if (event.target.files && event.target.files[0]) {
+      fileReader.readAsText(event.target.files[0], "UTF-8");
+      fileReader.onload = e => {
+        try {
+          const target = e.target?.result;
+          if (typeof target !== 'string') return;
+          const parsed = JSON.parse(target);
+          if (parsed.teams && parsed.envelopes && parsed.categories && parsed.pointLevels) {
+            updateTeams(parsed.teams);
+            updateEnvelopes(parsed.envelopes);
+            updateCategories(parsed.categories);
+            updatePointLevels(parsed.pointLevels);
+            alert("Configurazione importata con successo!");
+          } else {
+            alert("File non valido! Assicurati che sia un file di configurazione generato da DireFare.");
+          }
+        } catch (err) {
+          alert("Errore durante la lettura del file. Assicurati che sia un file JSON valido.");
+        }
+      };
+    }
+  };
 
   // Modal open states
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -1035,6 +1079,32 @@ const AdminPanel: React.FC<AdminProps> = ({
                 <RotateCcw size={12} />
                 <span>Reset Partita</span>
               </button>
+
+              <div className="h-4 w-px bg-slate-800 hidden md:block mx-1" />
+
+              <button
+                onClick={exportGameSetup}
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                title="Esporta tutta la configurazione in un file JSON"
+              >
+                <span>Esporta Config.</span>
+              </button>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                title="Importa configurazione da un file JSON"
+              >
+                <span>Importa Config.</span>
+              </button>
+
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={importGameSetup} 
+                accept=".json" 
+                className="hidden" 
+              />
             </div>
 
             {/* Right: Sound effects cue deck */}

@@ -20,7 +20,36 @@ export function useSyncState(_role: 'public' | 'admin') {
 
   const [envelopes, setEnvelopes] = useState<Envelope[]>(() => {
     const saved = localStorage.getItem('direfare_envelopes');
-    return saved ? JSON.parse(saved) : DEFAULT_ENVELOPES;
+    if (!saved) return DEFAULT_ENVELOPES;
+    try {
+      const parsed = JSON.parse(saved) as any[];
+      const needMigration = parsed.length > 0 && !parsed[0].category;
+      if (needMigration) {
+        return parsed.map((env, idx) => {
+          let category: 'dire' | 'fare' | 'indovinare' = 'dire';
+          if (env.teamId === 'team-blue' || env.teamId === 'team-green') {
+            category = 'fare';
+          } else if (env.teamId === 'team-yellow') {
+            category = 'indovinare';
+          } else {
+            const catKeys: ('dire' | 'fare' | 'indovinare')[] = ['dire', 'fare', 'indovinare'];
+            category = catKeys[idx % 3];
+          }
+          return {
+            id: env.id,
+            category,
+            label: env.label || `Busta ${idx + 1}`,
+            points: env.points || 100,
+            title: env.title || 'Sfida',
+            content: env.content || '',
+            isOpened: env.isOpened || false
+          };
+        });
+      }
+      return parsed;
+    } catch (e) {
+      return DEFAULT_ENVELOPES;
+    }
   });
 
   const [activeEnvelopeId, setActiveEnvelopeId] = useState<string | null>(() => {
