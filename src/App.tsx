@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Volume2, VolumeX, Shield, Users, Mail, RotateCcw, 
-  Plus, Trash2, Check, X, Tv, Settings, Sparkles, Edit2, RefreshCw, Award
+  Plus, Trash2, Check, X, Tv, Settings, Sparkles, Edit2, RefreshCw, Award,
+  ChevronUp, ChevronDown
 } from 'lucide-react';
 import { useSyncState } from './hooks/useSyncState';
 import { EnvelopeWidget } from './components/EnvelopeWidget';
@@ -325,6 +326,7 @@ const AdminPanel: React.FC<AdminProps> = ({
     return localStorage.getItem('direfare_admin_authed') === 'true';
   });
   const [pinError, setPinError] = useState(false);
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false);
 
   // Modal open states
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -891,107 +893,125 @@ const AdminPanel: React.FC<AdminProps> = ({
       {/* -------------------------------------------------------------
           3. STICKY BOTTOM CONTROL BAR
       ------------------------------------------------------------- */}
-      <footer className="fixed bottom-0 inset-x-0 bg-slate-950/90 border-t border-slate-800/80 p-4 flex flex-wrap justify-between items-center gap-4 z-40 backdrop-blur-md shadow-2xl">
-        
-        {/* Left: Scores adjustments list */}
-        <div className="flex items-center space-x-3 overflow-x-auto py-1 max-w-full md:max-w-2xl">
-          <span className="text-[10px] font-bold tracking-wider text-indigo-400 uppercase select-none">REGOLA SCOREBOARD:</span>
-          {teams.map(team => (
-            <div key={team.id} className="flex items-center space-x-1.5 bg-slate-900 border border-slate-850 px-2.5 py-1 rounded-full text-xs">
-              <div className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: team.color }} />
-              <span className="font-bold text-slate-300 mr-1.5 truncate max-w-[80px]">{team.name}:</span>
-              <button 
-                onClick={() => adjustScore(team.id, -50)} 
-                className="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 text-[10px] font-bold rounded hover:bg-slate-800"
+      <footer className="fixed bottom-0 inset-x-0 bg-slate-950/95 border-t border-slate-800/80 p-3 md:p-4 z-40 backdrop-blur-md shadow-2xl transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3">
+          
+          {/* Main Top Line of Footer */}
+          <div className="flex justify-between items-center gap-3">
+            {/* Left: Scores adjustments list */}
+            <div className="flex-1 flex items-center space-x-3 overflow-x-auto py-1 scrollbar-thin">
+              <span className="text-[10px] font-bold tracking-wider text-indigo-400 uppercase select-none shrink-0">SCOREBOARD:</span>
+              {teams.map(team => (
+                <div key={team.id} className="flex items-center space-x-1 bg-slate-900 border border-slate-850 px-2 py-0.5 rounded-full text-xs shrink-0">
+                  <div className="w-2 h-2 rounded-full border border-white/20" style={{ backgroundColor: team.color }} />
+                  <span className="font-bold text-slate-300 mr-1 truncate max-w-[70px]">{team.name}:</span>
+                  <button 
+                    onClick={() => adjustScore(team.id, -50)} 
+                    className="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 text-[10px] font-bold rounded hover:bg-slate-800"
+                  >
+                    -50
+                  </button>
+                  <span className="font-mono font-black text-slate-100 px-1">{team.score}</span>
+                  <button 
+                    onClick={() => adjustScore(team.id, 50)} 
+                    className="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 text-[10px] font-bold rounded hover:bg-slate-800"
+                  >
+                    +50
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={startAddTeam}
+                className="p-1 bg-indigo-600 hover:bg-indigo-500 rounded-full text-white transition-all cursor-pointer shrink-0"
+                title="Aggiungi Nuova Squadra"
               >
-                -50
-              </button>
-              <span className="font-mono font-black text-slate-100 px-1">{team.score}</span>
-              <button 
-                onClick={() => adjustScore(team.id, 50)} 
-                className="px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 text-[10px] font-bold rounded hover:bg-slate-800"
-              >
-                +50
+                <Plus size={12} />
               </button>
             </div>
-          ))}
-          <button
-            onClick={startAddTeam}
-            className="p-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-full text-white transition-all cursor-pointer"
-            title="Aggiungi Nuova Squadra"
-          >
-            <Plus size={12} />
-          </button>
-        </div>
 
-        {/* Center: Global Actions */}
-        <div className="flex items-center space-x-2.5">
-          <button
-            onClick={startAddEnvelope}
-            className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-bold flex items-center gap-1 cursor-pointer transition-all shadow"
-          >
-            <Plus size={13} />
-            <span>Nuova Busta</span>
-          </button>
-          
-          <button
-            onClick={() => setIsPointsModalOpen(true)}
-            className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
-          >
-            <RefreshCw size={12} />
-            <span>Punteggi Griglia</span>
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.confirm("Sei sicuro di voler resettare tutte le buste (renderle chiuse) e azzerare i punteggi delle squadre?")) {
-                resetAllGame();
-              }
-            }}
-            className="px-3.5 py-1.5 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/30 text-rose-300 hover:text-rose-100 rounded-full text-xs font-bold flex items-center gap-1 cursor-pointer transition-all"
-          >
-            <RotateCcw size={12} />
-            <span>Reset Partita</span>
-          </button>
-        </div>
-
-        {/* Right: Sound effects cue deck */}
-        <div className="flex items-center space-x-2.5">
-          <div className="flex items-center space-x-1.5 bg-slate-900 px-3 py-1 rounded-full border border-slate-850 text-xs">
-            <span className="text-[9px] font-bold text-slate-500 select-none uppercase">EFFETTI:</span>
-            <button 
-              onClick={() => triggerSound('zoom')}
-              className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
-            >
-              Zoom
-            </button>
-            <button 
-              onClick={() => triggerSound('open')}
-              className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
-            >
-              Strappo
-            </button>
-            <button 
-              onClick={() => triggerSound('reveal')}
-              className="px-1.5 py-0.5 bg-slate-950 text-amber-400 hover:text-amber-300 rounded text-[10px] font-semibold border border-amber-500/10"
-            >
-              Triumph
-            </button>
-            <button 
-              onClick={() => triggerSound('close')}
-              className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
-            >
-              Swoosh
-            </button>
+            {/* Mobile Expand / Collapse Controls Toggler */}
+            <div className="flex items-center space-x-2 shrink-0 md:hidden">
+              <button 
+                onClick={() => setIsFooterExpanded(!isFooterExpanded)}
+                className="p-2 rounded-full bg-slate-900 border border-slate-800 text-indigo-400 hover:text-indigo-300 transition-all font-semibold text-xs flex items-center gap-1 shadow-md cursor-pointer"
+              >
+                <span>Console</span>
+                {isFooterExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+              </button>
+            </div>
           </div>
-          <button 
-            onClick={toggleMute}
-            className="p-1.5 rounded-full bg-slate-900 hover:bg-slate-850 text-slate-400 border border-slate-800 transition-all cursor-pointer"
-          >
-            {isMuted ? <VolumeX size={15} className="text-rose-400" /> : <Volume2 size={15} className="text-emerald-450" />}
-          </button>
-        </div>
 
+          {/* Expanded Tools Panel: Visible on desktop, and collapsible on mobile */}
+          <div className={`${isFooterExpanded ? 'flex' : 'hidden'} md:flex flex-col md:flex-row justify-between items-center gap-4 pt-2 md:pt-0 border-t border-slate-800/40 md:border-none`}>
+            {/* Center: Global Actions */}
+            <div className="w-full md:w-auto flex flex-wrap items-center justify-center md:justify-start gap-2">
+              <button
+                onClick={startAddEnvelope}
+                className="flex-1 md:flex-none px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-all shadow"
+              >
+                <Plus size={13} />
+                <span>Nuova Busta</span>
+              </button>
+              
+              <button
+                onClick={() => setIsPointsModalOpen(true)}
+                className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+              >
+                <RefreshCw size={12} />
+                <span>Punteggi Griglia</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (window.confirm("Sei sicuro di voler resettare tutte le buste (renderle chiuse) e azzerare i punteggi delle squadre?")) {
+                    resetAllGame();
+                  }
+                }}
+                className="px-3 py-1.5 bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/30 text-rose-300 hover:text-rose-100 rounded-full text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-all"
+              >
+                <RotateCcw size={12} />
+                <span>Reset Partita</span>
+              </button>
+            </div>
+
+            {/* Right: Sound effects cue deck */}
+            <div className="w-full md:w-auto flex items-center justify-between md:justify-end gap-3">
+              <div className="flex-1 md:flex-none flex items-center justify-center space-x-1 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-850 text-xs">
+                <span className="text-[9px] font-bold text-slate-500 select-none uppercase">EFFETTI:</span>
+                <button 
+                  onClick={() => triggerSound('zoom')}
+                  className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
+                >
+                  Zoom
+                </button>
+                <button 
+                  onClick={() => triggerSound('open')}
+                  className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
+                >
+                  Strappo
+                </button>
+                <button 
+                  onClick={() => triggerSound('reveal')}
+                  className="px-1.5 py-0.5 bg-slate-950 text-amber-400 hover:text-amber-300 rounded text-[10px] font-semibold border border-amber-500/10"
+                >
+                  Triumph
+                </button>
+                <button 
+                  onClick={() => triggerSound('close')}
+                  className="px-1.5 py-0.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded text-[10px] font-semibold border border-slate-800"
+                >
+                  Swoosh
+                </button>
+              </div>
+              <button 
+                onClick={toggleMute}
+                className="p-1.5 rounded-full bg-slate-900 hover:bg-slate-850 text-slate-400 border border-slate-800 transition-all cursor-pointer"
+              >
+                {isMuted ? <VolumeX size={15} className="text-rose-400" /> : <Volume2 size={15} className="text-emerald-450" />}
+              </button>
+            </div>
+          </div>
+        </div>
       </footer>
 
       {/* -------------------------------------------------------------

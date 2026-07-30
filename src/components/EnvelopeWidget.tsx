@@ -123,7 +123,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
       {/* 2. Interactive Zoom & Fullscreen Overlay View */}
       <AnimatePresence>
         {isActive && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto">
             {/* Dark background overlay */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -205,7 +205,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   }}
                   className={`absolute bg-amber-50 rounded-lg p-5 flex flex-col justify-between text-slate-900 overflow-hidden transform-style-3d transition-all duration-300 ${
                     animationStep === 'revealed' 
-                      ? 'inset-x-[-12%] top-[-25%] bottom-[-25%] md:inset-x-[-20%] md:top-[-30%] md:bottom-[-30%]' 
+                      ? 'inset-x-[-4%] top-[-10%] bottom-[-10%] sm:inset-x-[-10%] sm:top-[-20%] sm:bottom-[-20%] md:inset-x-[-20%] md:top-[-30%] md:bottom-[-30%]' 
                       : 'inset-x-6 top-6 bottom-6'
                   }`}
                   style={{
