@@ -1233,6 +1233,7 @@ const AdminPanel: React.FC<AdminProps> = ({
             timerTimeLeft={timerTimeLeft}
             timerIsPaused={timerIsPaused}
             timerDisplayMode={timerDisplayMode}
+            onAdjustScore={adjustScore}
           />
         )}
 

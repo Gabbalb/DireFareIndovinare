@@ -19,6 +19,7 @@ interface EnvelopeWidgetProps {
   timerTimeLeft?: number;
   timerIsPaused?: boolean;
   timerDisplayMode?: 'fullscreen' | 'bubble';
+  onAdjustScore?: (teamId: string, amount: number) => void;
 }
 
 export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
@@ -36,7 +37,8 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   timerActive = false,
   timerTimeLeft = 0,
   timerIsPaused = false,
-  timerDisplayMode = 'fullscreen'
+  timerDisplayMode = 'fullscreen',
+  onAdjustScore
 }) => {
   const [showTeamSelect, setShowTeamSelect] = React.useState(false);
 
@@ -538,6 +540,44 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Viewport Floating Scoreboard Bubble */}
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              transition={{ delay: 0.2 }}
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/95 backdrop-blur-md border border-slate-805 rounded-full px-5 py-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-3 max-w-[95%] w-max"
+            >
+              {teams.map((team, idx) => (
+                <React.Fragment key={team.id}>
+                  {idx > 0 && <div className="h-4 w-px bg-slate-800 mx-1 shrink-0" />}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} />
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{team.name}:</span>
+                    {role === 'admin' && onAdjustScore && (
+                      <button
+                        onClick={() => onAdjustScore(team.id, -50)}
+                        className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-[9px] font-black rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="-50 Punti"
+                      >
+                        -
+                      </button>
+                    )}
+                    <span className="text-sm font-black text-slate-100 font-sans">{team.score}</span>
+                    {role === 'admin' && onAdjustScore && (
+                      <button
+                        onClick={() => onAdjustScore(team.id, 50)}
+                        className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-[9px] font-black rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="+50 Punti"
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
+                </React.Fragment>
+              ))}
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
