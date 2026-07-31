@@ -288,22 +288,17 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                           
                           {/* Image frame */}
                           <div className="flex-1 w-full max-h-[50vh] min-h-[150px] relative overflow-hidden rounded-xl bg-slate-950 border-2 border-[#d4af37]/35 shadow-2xl flex items-center justify-center">
-                            <motion.img
+                            <img
                               src={envelope.imageData}
                               alt="Foto da indovinare"
                               className="w-full h-full object-cover"
-                              initial={{ scale: envelope.zoomScale ?? 3 }}
-                              animate={{
-                                scale: animationStep === 'photo' ? 1 : (envelope.zoomScale ?? 3),
-                              }}
                               style={{
-                                transformOrigin: `${envelope.zoomX ?? 50}% ${envelope.zoomY ?? 50}%`
+                                transformOrigin: `${envelope.zoomX ?? 50}% ${envelope.zoomY ?? 50}%`,
+                                transform: `scale(${animationStep === 'photo' ? 1 : (envelope.zoomScale ?? 3)})`,
+                                transition: animationStep === 'photo'
+                                  ? 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+                                  : 'none'
                               }}
-                              transition={
-                                animationStep === 'photo'
-                                  ? { type: 'spring', stiffness: 45, damping: 15, mass: 1.2 }
-                                  : { duration: 0 }
-                              }
                             />
                           </div>
 
