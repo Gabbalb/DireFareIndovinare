@@ -299,12 +299,11 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                               style={{
                                 transformOrigin: `${envelope.zoomX ?? 50}% ${envelope.zoomY ?? 50}%`
                               }}
-                              transition={{
-                                type: 'spring',
-                                stiffness: 45,
-                                damping: 15,
-                                mass: 1.2
-                              }}
+                              transition={
+                                animationStep === 'photo'
+                                  ? { type: 'spring', stiffness: 45, damping: 15, mass: 1.2 }
+                                  : { duration: 0 }
+                              }
                             />
                           </div>
 
