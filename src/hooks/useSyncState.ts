@@ -6,7 +6,7 @@ export interface GameState {
   teams: Team[];
   envelopes: Envelope[];
   activeEnvelopeId: string | null;
-  animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
+  animationStep: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed';
   isMuted: boolean;
   pointLevels: number[];
 }
@@ -56,7 +56,7 @@ export function useSyncState(_role: 'public' | 'admin') {
     return localStorage.getItem('direfare_active_envelope');
   });
 
-  const [animationStep, setAnimationStep] = useState<'closed' | 'zoomed' | 'opened' | 'revealed'>(() => {
+  const [animationStep, setAnimationStep] = useState<'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed'>(() => {
     return (localStorage.getItem('direfare_animation_step') as any) || 'closed';
   });
 
@@ -309,7 +309,7 @@ export function useSyncState(_role: 'public' | 'admin') {
     playSound.reveal(isMuted);
   };
 
-  const changeAnimationStep = (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => {
+  const changeAnimationStep = (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => {
     setAnimationStep(step);
     localStorage.setItem('direfare_animation_step', step);
     

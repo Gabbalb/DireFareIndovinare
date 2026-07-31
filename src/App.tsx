@@ -142,7 +142,7 @@ interface PublicProps {
   envelopes: Envelope[];
   categories: Category[];
   activeEnvelopeId: string | null;
-  animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
+  animationStep: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed';
   isMuted: boolean;
   timerActive: boolean;
   timerDuration: number;
@@ -150,7 +150,7 @@ interface PublicProps {
   timerIsPaused: boolean;
   openEnvelope: (id: string) => void;
   closeEnvelope: () => void;
-  changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
+  changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => void;
   toggleMute: () => void;
   handleMarkAsOpened: (id: string, success: boolean, points: number, winningTeamId: string | null) => void;
 }
@@ -334,7 +334,7 @@ interface AdminProps {
   envelopes: Envelope[];
   categories: Category[];
   activeEnvelopeId: string | null;
-  animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
+  animationStep: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed';
   isMuted: boolean;
   pointLevels: number[];
   timerActive: boolean;
@@ -347,7 +347,7 @@ interface AdminProps {
   updateCategories: (categories: Category[]) => void;
   openEnvelope: (id: string) => void;
   closeEnvelope: () => void;
-  changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
+  changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => void;
   toggleMute: () => void;
   triggerSound: (sound: 'zoom' | 'open' | 'reveal' | 'close' | 'tick' | 'buzzer') => void;
   resetAllGame: () => void;
@@ -1105,6 +1105,14 @@ const AdminPanel: React.FC<AdminProps> = ({
                 >
                   2. Apri
                 </button>
+                {activeEnvelope.imageData && (
+                  <button 
+                    onClick={() => changeAnimationStep('photo')}
+                    className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
+                  >
+                    3. Mostra Foto
+                  </button>
+                )}
                 <button 
                   onClick={() => {
                     if (activeEnvelope.imageData) {
@@ -1117,7 +1125,7 @@ const AdminPanel: React.FC<AdminProps> = ({
                   }}
                   className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'revealed' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
                 >
-                  3. Rivela Carta
+                  {activeEnvelope.imageData ? '4. Rivela Foto' : '3. Rivela Carta'}
                 </button>
 
                 <div className="h-6 w-px bg-slate-800 mx-1" />
