@@ -19,7 +19,12 @@ interface EnvelopeWidgetProps {
   timerTimeLeft?: number;
   timerIsPaused?: boolean;
   timerDisplayMode?: 'fullscreen' | 'bubble';
-  onAdjustScore?: (teamId: string, amount: number) => void;
+  onStartTimer?: (duration: number, displayMode?: 'fullscreen' | 'bubble') => void;
+  onPauseTimer?: () => void;
+  onResumeTimer?: () => void;
+  onStopTimer?: () => void;
+  onSetTimerDisplayMode?: (mode: 'fullscreen' | 'bubble') => void;
+  onTriggerSound?: (sound: 'zoom' | 'open' | 'reveal' | 'close' | 'tick' | 'buzzer') => void;
 }
 
 export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
@@ -38,7 +43,12 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   timerTimeLeft = 0,
   timerIsPaused = false,
   timerDisplayMode = 'fullscreen',
-  onAdjustScore
+  onStartTimer,
+  onPauseTimer,
+  onResumeTimer,
+  onStopTimer,
+  onSetTimerDisplayMode,
+  onTriggerSound
 }) => {
   const [showTeamSelect, setShowTeamSelect] = React.useState(false);
 
@@ -479,6 +489,101 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     </button>
                   </div>
 
+                  {/* Timer & Sound Popover */}
+                  <div className="relative group">
+                    <button className="px-3.5 py-1.5 bg-slate-900 border border-slate-800 text-amber-400 hover:text-amber-300 font-bold rounded-full text-[11px] transition-all flex items-center gap-1 cursor-pointer">
+                      <Timer size={13} />
+                      <span>Timer & Audio</span>
+                    </button>
+                    
+                    {/* Hover Card */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-slate-950/98 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 text-left">
+                      {/* Timer presets */}
+                      <div className="mb-4">
+                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Gestione Timer</span>
+                        <div className="flex gap-2 mb-2.5">
+                          {[30, 60, 120].map((sec) => (
+                            <button
+                              key={sec}
+                              onClick={() => onStartTimer && onStartTimer(sec)}
+                              className="px-2.5 py-1 bg-slate-900 hover:bg-indigo-600 text-slate-250 hover:text-white border border-slate-800 hover:border-indigo-500 rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
+                            >
+                              {sec}s
+                            </button>
+                          ))}
+                        </div>
+                        {timerActive && (
+                          <div className="flex gap-2">
+                            {timerIsPaused ? (
+                              <button
+                                onClick={onResumeTimer}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
+                              >
+                                Riprendi
+                              </button>
+                            ) : (
+                              <button
+                                onClick={onPauseTimer}
+                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
+                              >
+                                Pausa
+                              </button>
+                            )}
+                            <button
+                              onClick={onStopTimer}
+                              className="px-2.5 py-1 bg-rose-650 hover:bg-rose-550 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
+                            >
+                              Stop
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Modalità Proiezione */}
+                      <div className="mb-4 border-t border-slate-900 pt-3">
+                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Proiezione Timer</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('fullscreen')}
+                            className={`px-2 py-1.5 border rounded-lg text-[10px] font-bold transition-all cursor-pointer text-center ${
+                              timerDisplayMode === 'fullscreen'
+                                ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
+                                : 'border-slate-850 bg-slate-900 text-slate-455'
+                            }`}
+                          >
+                            🖥️ Schermo Intero
+                          </button>
+                          <button
+                            onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('bubble')}
+                            className={`px-2 py-1.5 border rounded-lg text-[10px] font-bold transition-all cursor-pointer text-center ${
+                              timerDisplayMode === 'bubble'
+                                ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
+                                : 'border-slate-850 bg-slate-900 text-slate-455'
+                            }`}
+                          >
+                            💬 Bolla
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Sound Effects */}
+                      <div className="border-t border-slate-900 pt-3">
+                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Effetti Sonori</span>
+                        <div className="grid grid-cols-3 gap-1.5">
+                          {(['zoom', 'open', 'reveal', 'close', 'tick', 'buzzer'] as const).map((sound) => (
+                            <button
+                              key={sound}
+                              onClick={() => onTriggerSound && onTriggerSound(sound)}
+                              className="px-1.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-350 hover:text-white border border-slate-850 rounded text-[10px] font-semibold transition-all uppercase cursor-pointer text-center truncate"
+                            >
+                              {sound}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
                   {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
                     <div className="flex flex-col items-center gap-3">
@@ -555,25 +660,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} />
                     <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{team.name}:</span>
-                    {role === 'admin' && onAdjustScore && (
-                      <button
-                        onClick={() => onAdjustScore(team.id, -50)}
-                        className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-[9px] font-black rounded hover:bg-slate-800 transition-colors cursor-pointer"
-                        title="-50 Punti"
-                      >
-                        -
-                      </button>
-                    )}
                     <span className="text-sm font-black text-slate-100 font-sans">{team.score}</span>
-                    {role === 'admin' && onAdjustScore && (
-                      <button
-                        onClick={() => onAdjustScore(team.id, 50)}
-                        className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-[9px] font-black rounded hover:bg-slate-800 transition-colors cursor-pointer"
-                        title="+50 Punti"
-                      >
-                        +
-                      </button>
-                    )}
                   </div>
                 </React.Fragment>
               ))}

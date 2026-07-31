@@ -35,6 +35,7 @@ function App() {
     timerTimeLeft,
     timerIsPaused,
     timerDisplayMode,
+    setTimerDisplayMode,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
@@ -96,6 +97,7 @@ function App() {
         timerTimeLeft={timerTimeLeft}
         timerIsPaused={timerIsPaused}
         timerDisplayMode={timerDisplayMode}
+        setTimerDisplayMode={setTimerDisplayMode}
         updateTeams={updateTeams}
         updateEnvelopes={updateEnvelopes}
         updatePointLevels={updatePointLevels}
@@ -351,6 +353,7 @@ interface AdminProps {
   timerTimeLeft: number;
   timerIsPaused: boolean;
   timerDisplayMode: 'fullscreen' | 'bubble';
+  setTimerDisplayMode: (mode: 'fullscreen' | 'bubble') => void;
   updateTeams: (teams: Team[]) => void;
   updateEnvelopes: (envelopes: Envelope[]) => void;
   updatePointLevels: (levels: number[]) => void;
@@ -380,6 +383,7 @@ const AdminPanel: React.FC<AdminProps> = ({
   timerTimeLeft,
   timerIsPaused,
   timerDisplayMode,
+  setTimerDisplayMode,
   updateTeams,
   updateEnvelopes,
   updatePointLevels,
@@ -1233,7 +1237,12 @@ const AdminPanel: React.FC<AdminProps> = ({
             timerTimeLeft={timerTimeLeft}
             timerIsPaused={timerIsPaused}
             timerDisplayMode={timerDisplayMode}
-            onAdjustScore={adjustScore}
+            onStartTimer={startTimer}
+            onPauseTimer={pauseTimer}
+            onResumeTimer={resumeTimer}
+            onStopTimer={stopTimer}
+            onSetTimerDisplayMode={setTimerDisplayMode}
+            onTriggerSound={triggerSound}
           />
         )}
 
