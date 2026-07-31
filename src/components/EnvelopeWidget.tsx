@@ -292,7 +292,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                               src={envelope.imageData}
                               alt="Foto da indovinare"
                               className="w-full h-full object-cover"
-                              initial={false}
+                              initial={{ scale: envelope.zoomScale ?? 3 }}
                               animate={{
                                 scale: animationStep === 'photo' ? 1 : (envelope.zoomScale ?? 3),
                               }}
@@ -427,7 +427,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
 
               {/* ACTION TOOLBAR & STAGE CONTROLLER (visible ONLY for admin) */}
               {role === 'admin' && (
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-wrap gap-3.5 items-center justify-center z-50 bg-slate-950/90 backdrop-blur-md px-6 py-2.5 rounded-full border border-slate-800 shadow-2xl max-w-[95%] w-max">
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 flex flex-wrap gap-3.5 items-center justify-center z-[100] bg-slate-950/90 backdrop-blur-md px-6 py-2.5 rounded-full border border-slate-800 shadow-2xl max-w-[95%] w-max">
                   {/* Step Navigation Controls */}
                   <div className="flex items-center gap-2 bg-slate-900/60 p-1 rounded-full border border-slate-800/80">
                     <button

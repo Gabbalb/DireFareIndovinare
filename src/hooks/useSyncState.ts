@@ -302,8 +302,7 @@ export function useSyncState(_role: 'public' | 'admin') {
 
   const openEnvelope = (id: string) => {
     setActiveEnvelopeId(id);
-    const target = envelopes.find(e => e.id === id);
-    const initialStep = (target && target.imageData) ? 'zoomed' : 'revealed';
+    const initialStep = 'zoomed';
     setAnimationStep(initialStep);
     localStorage.setItem('direfare_active_envelope', id);
     localStorage.setItem('direfare_animation_step', initialStep);
@@ -313,11 +312,7 @@ export function useSyncState(_role: 'public' | 'admin') {
       type: 'TRIGGER_OPEN_ENVELOPE',
       payload: { id, initialStep }
     });
-    if (initialStep === 'revealed') {
-      playSound.reveal(isMuted);
-    } else {
-      playSound.zoom(isMuted);
-    }
+    playSound.zoom(isMuted);
   };
 
   const changeAnimationStep = (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => {

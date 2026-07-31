@@ -810,6 +810,31 @@ const AdminPanel: React.FC<AdminProps> = ({
   // Active projection card helpers
   const activeEnvelope = envelopes.find(e => e.id === activeEnvelopeId);
 
+  const steps: ('zoomed' | 'opened' | 'revealed' | 'photo')[] = activeEnvelope?.imageData 
+    ? ['zoomed', 'opened', 'revealed', 'photo']
+    : ['zoomed', 'opened', 'revealed'];
+
+  const currentIdx = activeEnvelope ? steps.indexOf(animationStep as any) : -1;
+
+  const goNext = () => {
+    if (activeEnvelope && currentIdx < steps.length - 1) {
+      const nextStep = steps[currentIdx + 1];
+      if (nextStep === 'photo') {
+        if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
+          changeAnimationStep(nextStep);
+        }
+      } else {
+        changeAnimationStep(nextStep);
+      }
+    }
+  };
+
+  const goPrev = () => {
+    if (activeEnvelope && currentIdx > 0) {
+      changeAnimationStep(steps[currentIdx - 1]);
+    }
+  };
+
   return (
     <>
     <div className="min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-28 transition-all duration-500">
@@ -1092,37 +1117,30 @@ const AdminPanel: React.FC<AdminProps> = ({
               </div>
 
               {/* Step triggers */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <button 
-                  onClick={() => changeAnimationStep('zoomed')}
-                  className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'zoomed' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
+              <div className="flex flex-wrap items-center gap-2 text-xs bg-slate-950/60 p-1.5 rounded-full border border-slate-850">
+                <button
+                  onClick={goPrev}
+                  disabled={currentIdx <= 0}
+                  className="px-3.5 py-1 bg-slate-900 hover:bg-slate-850 disabled:opacity-40 text-slate-350 font-bold rounded-full transition-all flex items-center gap-1 cursor-pointer"
                 >
-                  1. Zoom Busta
+                  &larr; Indietro
                 </button>
-                <button 
-                  onClick={() => changeAnimationStep('opened')}
-                  className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'opened' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
+                
+                <span className="font-bold text-slate-400 uppercase tracking-wider px-2.5 select-none">
+                  {animationStep === 'zoomed' && '1. Sigillato'}
+                  {animationStep === 'opened' && '2. Aperto'}
+                  {animationStep === 'revealed' && (activeEnvelope.imageData ? '3. Zoom Foto' : '3. Rivelato')}
+                  {animationStep === 'photo' && '4. Foto Intera'}
+                </span>
+
+                <button
+                  onClick={goNext}
+                  disabled={currentIdx >= steps.length - 1}
+                  className="px-3.5 py-1 bg-indigo-650 hover:bg-indigo-600 disabled:opacity-45 text-white font-bold rounded-full transition-all flex items-center gap-1 cursor-pointer animate-pulse"
+                  style={{ animationDuration: '2.5s' }}
                 >
-                  2. Apri
+                  Avanti &rarr;
                 </button>
-                <button 
-                  onClick={() => changeAnimationStep('revealed')}
-                  className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'revealed' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
-                >
-                  {activeEnvelope.imageData ? '3. Zoom Foto' : '3. Rivela Carta'}
-                </button>
-                {activeEnvelope.imageData && (
-                  <button 
-                    onClick={() => {
-                      if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
-                        changeAnimationStep('photo');
-                      }
-                    }}
-                    className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
-                  >
-                    4. Foto Intera
-                  </button>
-                )}
 
                 <div className="h-6 w-px bg-slate-800 mx-1" />
 
@@ -1178,6 +1196,23 @@ const AdminPanel: React.FC<AdminProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Envelope Overlay for Admin Screen */}
+        {activeEnvelope && (
+          <EnvelopeWidget
+            envelope={activeEnvelope}
+            teams={teams}
+            categories={categories}
+            isActive={true}
+            animationStep={animationStep}
+            onOpen={() => {}}
+            onStepChange={changeAnimationStep}
+            onClose={closeEnvelope}
+            onMarkAsOpened={handleMarkAsOpened}
+            role="admin"
+            displayLabel={activeEnvelope.label}
+          />
         )}
 
       </main>
