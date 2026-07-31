@@ -1789,30 +1789,7 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
       {/* Visual ambient glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[500px] md:h-[500px] bg-amber-500/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none" />
       
-      <div className="relative flex flex-col items-center justify-center p-8 max-w-md w-full text-center">
-        {/* Circle Progress Tracker */}
-        <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center">
-          <svg className="absolute w-full h-full -rotate-90">
-            <circle
-              cx="50%"
-              cy="50%"
-              r="80"
-              className="stroke-slate-800/40 fill-none"
-              strokeWidth="6"
-            />
-            <motion.circle
-              cx="50%"
-              cy="50%"
-              r="80"
-              className="stroke-amber-400 fill-none"
-              strokeWidth="6"
-              strokeDasharray="502"
-              animate={{ strokeDashoffset }}
-              transition={{ duration: 0.3, ease: "linear" }}
-              strokeLinecap="round"
-            />
-          </svg>
-
+      <div className="relative flex flex-col items-center justify-center p-8 max-w-md w-full text-center">     
           {/* Time digits */}
           <div className="flex flex-col items-center justify-center z-10">
             <span className="text-8xl md:text-9xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-400 to-amber-500 drop-shadow-[0_0_30px_rgba(245,158,11,0.25)] select-none">
@@ -1856,7 +1833,6 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
             </button>
           </div>
         )}
-      </div>
     </motion.div>
   );
 };
