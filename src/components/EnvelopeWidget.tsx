@@ -203,9 +203,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                         : animationStep === 'opened' 
                           ? '-38%' 
                           : '-2%', // Re-centers on screen to prevent being cut off at the top
-                    scale: animationStep === 'revealed' ? 1.05 : 0.93, // Reduced scale to rely on layout expansion instead
-                    zIndex: animationStep === 'revealed' ? 40 : (animationStep === 'opened' ? 25 : 5),
-                    boxShadow: animationStep === 'revealed' 
+                    scale: (animationStep === 'revealed' || animationStep === 'photo') ? 1.05 : 0.93, // Reduced scale to rely on layout expansion instead
+                    zIndex: (animationStep === 'revealed' || animationStep === 'photo') ? 40 : (animationStep === 'opened' ? 25 : 5),
+                    boxShadow: (animationStep === 'revealed' || animationStep === 'photo')
                       ? '0 25px 65px rgba(0, 0, 0, 0.95), 0 0 50px rgba(212, 175, 55, 0.45)' 
                       : '0 5px 15px rgba(0, 0, 0, 0.5)'
                   }}
@@ -216,7 +216,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     mass: 1.1
                   }}
                   className={`absolute bg-amber-50 rounded-lg p-6 md:p-10 flex flex-col justify-between text-slate-900 overflow-hidden transform-style-3d transition-all duration-300 ${
-                    animationStep === 'revealed' 
+                    (animationStep === 'revealed' || animationStep === 'photo')
                       ? 'inset-x-[-4%] top-[-10%] bottom-[-10%] sm:inset-x-[-10%] sm:top-[-20%] sm:bottom-[-20%] md:inset-x-[-20%] md:top-[-30%] md:bottom-[-30%]' 
                       : 'inset-x-6 top-6 bottom-6'
                   }`}
@@ -400,104 +400,106 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 </AnimatePresence>
               </motion.div>
 
-              {/* ACTION TOOLBAR & STAGE CONTROLLER (visible for both or admin) */}
-              <div className="mt-8 flex flex-wrap gap-4 items-center justify-center z-50">
-                {/* 1. Zoomed, waiting to open */}
-                {animationStep === 'zoomed' && (
-                  <button
-                    onClick={() => onStepChange('opened')}
-                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold font-sans rounded-full flex items-center space-x-2 text-white shadow-lg transition-all"
-                  >
-                    <Play size={16} />
-                    <span>Apri Lembo</span>
-                  </button>
-                )}
+              {/* ACTION TOOLBAR & STAGE CONTROLLER (visible ONLY for admin) */}
+              {role === 'admin' && (
+                <div className="mt-8 flex flex-wrap gap-4 items-center justify-center z-50">
+                  {/* 1. Zoomed, waiting to open */}
+                  {animationStep === 'zoomed' && (
+                    <button
+                      onClick={() => onStepChange('opened')}
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold font-sans rounded-full flex items-center space-x-2 text-white shadow-lg transition-all"
+                    >
+                      <Play size={16} />
+                      <span>Apri Lembo</span>
+                    </button>
+                  )}
 
-                {/* 2. Flap is open, waiting to reveal */}
-                {animationStep === 'opened' && (
-                  <button
-                    onClick={() => onStepChange('revealed')}
-                    className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
-                  >
-                    <Eye size={16} />
-                    <span>Rivela Contenuto</span>
-                  </button>
-                )}
+                  {/* 2. Flap is open, waiting to reveal */}
+                  {animationStep === 'opened' && (
+                    <button
+                      onClick={() => onStepChange('revealed')}
+                      className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
+                    >
+                      <Eye size={16} />
+                      <span>Rivela Contenuto</span>
+                    </button>
+                  )}
 
-                {/* 2.5 Zoomed photo is shown, waiting to reveal complete photo */}
-                {animationStep === 'revealed' && envelope.imageData && (
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
-                        onStepChange('photo');
-                      }
-                    }}
-                    className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
-                  >
-                    <Eye size={16} />
-                    <span>Mostra Immagine Completa</span>
-                  </button>
-                )}
+                  {/* 2.5 Zoomed photo is shown, waiting to reveal complete photo */}
+                  {animationStep === 'revealed' && envelope.imageData && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
+                          onStepChange('photo');
+                        }
+                      }}
+                      className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
+                    >
+                      <Eye size={16} />
+                      <span>Mostra Immagine Completa</span>
+                    </button>
+                  )}
 
-                {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
-                {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
-                  <div className="flex flex-col items-center gap-3">
-                    {!showTeamSelect ? (
-                      <div className="flex gap-3 bg-slate-900/90 backdrop-blur-sm p-2 rounded-full border border-slate-700">
-                        <button
-                          onClick={() => setShowTeamSelect(true)}
-                          className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
-                        >
-                          <Check size={16} />
-                          <span>Sfida Superata</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => onMarkAsOpened(envelope.id, false, 0, null)}
-                          className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
-                        >
-                          <X size={16} />
-                          <span>Sfida Fallita</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 bg-slate-900/95 backdrop-blur-sm p-4 rounded-2xl border border-slate-700 max-w-md w-full">
-                        <span className="text-xs font-bold text-slate-350 tracking-wider">CHI HA VINTO I {envelope.points} PUNTI?</span>
-                        <div className="flex flex-wrap justify-center gap-2 mt-1">
-                          {teams.map(team => (
-                            <button
-                              key={team.id}
-                              onClick={() => onMarkAsOpened(envelope.id, true, envelope.points, team.id)}
-                              className="px-4 py-2 border rounded-full text-xs font-bold text-white transition-all shadow hover:brightness-110 active:scale-95"
-                              style={{
-                                backgroundColor: team.color,
-                                borderColor: `${team.color}50`
-                              }}
-                            >
-                              {team.name}
-                            </button>
-                          ))}
+                  {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
+                  {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
+                    <div className="flex flex-col items-center gap-3">
+                      {!showTeamSelect ? (
+                        <div className="flex gap-3 bg-slate-900/90 backdrop-blur-sm p-2 rounded-full border border-slate-700">
+                          <button
+                            onClick={() => setShowTeamSelect(true)}
+                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
+                          >
+                            <Check size={16} />
+                            <span>Sfida Superata</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => onMarkAsOpened(envelope.id, false, 0, null)}
+                            className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold font-sans text-sm rounded-full flex items-center space-x-1.5 shadow transition-all"
+                          >
+                            <X size={16} />
+                            <span>Sfida Fallita</span>
+                          </button>
                         </div>
-                        <button
-                          onClick={() => setShowTeamSelect(false)}
-                          className="mt-2 text-[10px] text-slate-500 hover:text-slate-400 font-bold uppercase tracking-wider"
-                        >
-                          &larr; Indietro
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 bg-slate-900/95 backdrop-blur-sm p-4 rounded-2xl border border-slate-700 max-w-md w-full">
+                          <span className="text-xs font-bold text-slate-350 tracking-wider">CHI HA VINTO I {envelope.points} PUNTI?</span>
+                          <div className="flex flex-wrap justify-center gap-2 mt-1">
+                            {teams.map(team => (
+                              <button
+                                key={team.id}
+                                onClick={() => onMarkAsOpened(envelope.id, true, envelope.points, team.id)}
+                                className="px-4 py-2 border rounded-full text-xs font-bold text-white transition-all shadow hover:brightness-110 active:scale-95"
+                                style={{
+                                  backgroundColor: team.color,
+                                  borderColor: `${team.color}50`
+                                }}
+                              >
+                                {team.name}
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => setShowTeamSelect(false)}
+                            className="mt-2 text-[10px] text-slate-500 hover:text-slate-450 font-bold uppercase tracking-wider"
+                          >
+                            &larr; Indietro
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                {/* Close/Back Button */}
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold font-sans rounded-full flex items-center space-x-2 shadow transition-all"
-                >
-                  <X size={16} />
-                  <span>Chiudi / Torna</span>
-                </button>
-              </div>
+                  {/* Close/Back Button */}
+                  <button
+                    onClick={onClose}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold font-sans rounded-full flex items-center space-x-2 shadow transition-all"
+                  >
+                    <X size={16} />
+                    <span>Chiudi / Torna</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
