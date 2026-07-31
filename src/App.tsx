@@ -494,6 +494,10 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [envTitle, setEnvTitle] = useState('');
   const [envContent, setEnvContent] = useState('');
   const [envCategory, setEnvCategory] = useState<'dire' | 'fare' | 'indovinare'>('dire');
+  const [envImageData, setEnvImageData] = useState<string | undefined>(undefined);
+  const [envZoomScale, setEnvZoomScale] = useState<number>(3);
+  const [envZoomX, setEnvZoomX] = useState<number>(50);
+  const [envZoomY, setEnvZoomY] = useState<number>(50);
 
   const [localLevels, setLocalLevels] = useState<number[]>([]);
   const [newLevelPoints, setNewLevelPoints] = useState<number>(300);
@@ -576,7 +580,11 @@ const AdminPanel: React.FC<AdminProps> = ({
         points: envPoints,
         title: envTitle,
         content: envContent,
-        category: envCategory
+        category: envCategory,
+        imageData: envImageData,
+        zoomScale: envZoomScale,
+        zoomX: envZoomX,
+        zoomY: envZoomY
       } : e));
       setEditingEnvelopeId(null);
     } else {
@@ -591,7 +599,11 @@ const AdminPanel: React.FC<AdminProps> = ({
         title: envTitle,
         content: envContent,
         category: envCategory,
-        isOpened: false
+        isOpened: false,
+        imageData: envImageData,
+        zoomScale: envZoomScale,
+        zoomX: envZoomX,
+        zoomY: envZoomY
       };
       updateEnvelopes([...envelopes, newEnv]);
     }
@@ -601,6 +613,10 @@ const AdminPanel: React.FC<AdminProps> = ({
     setEnvCategory('dire');
     setEnvLabel('Busta');
     setEnvPoints(100);
+    setEnvImageData(undefined);
+    setEnvZoomScale(3);
+    setEnvZoomX(50);
+    setEnvZoomY(50);
     setIsEnvelopeModalOpen(false);
   };
 
@@ -611,6 +627,10 @@ const AdminPanel: React.FC<AdminProps> = ({
     setEnvTitle(env.title);
     setEnvContent(env.content);
     setEnvCategory(env.category);
+    setEnvImageData(env.imageData);
+    setEnvZoomScale(env.zoomScale ?? 3);
+    setEnvZoomX(env.zoomX ?? 50);
+    setEnvZoomY(env.zoomY ?? 50);
     setIsEnvelopeModalOpen(true);
   };
 
@@ -621,6 +641,10 @@ const AdminPanel: React.FC<AdminProps> = ({
     setEnvTitle('');
     setEnvContent('');
     setEnvCategory('dire');
+    setEnvImageData(undefined);
+    setEnvZoomScale(3);
+    setEnvZoomX(50);
+    setEnvZoomY(50);
     setIsEnvelopeModalOpen(true);
   };
 
@@ -1082,7 +1106,15 @@ const AdminPanel: React.FC<AdminProps> = ({
                   2. Apri
                 </button>
                 <button 
-                  onClick={() => changeAnimationStep('revealed')}
+                  onClick={() => {
+                    if (activeEnvelope.imageData) {
+                      if (window.confirm("Sei sicuro di voler rivelare la foto originale?")) {
+                        changeAnimationStep('revealed');
+                      }
+                    } else {
+                      changeAnimationStep('revealed');
+                    }
+                  }}
                   className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'revealed' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
                 >
                   3. Rivela Carta
@@ -1433,7 +1465,7 @@ const AdminPanel: React.FC<AdminProps> = ({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl z-10 text-slate-100"
+              className={`relative w-full ${envImageData !== undefined ? 'max-w-2xl' : 'max-w-lg'} bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl z-10 text-slate-100 max-h-[90vh] overflow-y-auto`}
             >
               <h3 className="font-cinzel text-lg font-bold tracking-wider text-slate-100 border-b border-slate-800 pb-3 mb-4">
                 {editingEnvelopeId ? 'MODIFICA BUSTA SFIDA' : 'CREA NUOVA BUSTA SFIDA'}
@@ -1486,13 +1518,159 @@ const AdminPanel: React.FC<AdminProps> = ({
                   />
                 </div>
 
+                {/* SEZIONE FOTO PER INDOVINARE */}
+                <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-850/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-[10px] text-slate-300 font-bold block uppercase tracking-wider">
+                        Modalità "Indovina la Foto"
+                      </label>
+                      <span className="text-[9px] text-slate-500 block leading-tight mt-0.5">Permette di caricare una foto e selezionarne una porzione da indovinare</span>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={envImageData !== undefined}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setEnvImageData(""); // enable but empty initially
+                        } else {
+                          setEnvImageData(undefined);
+                        }
+                      }}
+                      className="w-4 h-4 text-indigo-600 bg-slate-950 border-slate-850 rounded focus:ring-indigo-500 cursor-pointer"
+                    />
+                  </div>
+
+                  {envImageData !== undefined && (
+                    <div className="space-y-3 pt-3 border-t border-slate-800/50">
+                      <div>
+                        <label className="text-[9px] text-slate-400 font-bold block mb-1">Carica Foto</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setEnvImageData(event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-900/40 file:text-indigo-200 hover:file:bg-indigo-900/60 file:cursor-pointer cursor-pointer"
+                        />
+                      </div>
+
+                      {envImageData && (
+                        <div className="space-y-3">
+                          {/* Selector & Preview wrapper */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Interactive selection container */}
+                            <div className="space-y-2">
+                              <label className="text-[9px] text-slate-400 font-bold block">
+                                Seleziona Area di Zoom (Clicca sull'immagine)
+                              </label>
+                              <div 
+                                className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-800 bg-black cursor-crosshair group flex items-center justify-center"
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                  const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                  setEnvZoomX(Math.round(x));
+                                  setEnvZoomY(Math.round(y));
+                                }}
+                              >
+                                <img 
+                                  src={envImageData} 
+                                  alt="Selettore" 
+                                  className="max-w-full max-h-full object-contain pointer-events-none opacity-80"
+                                />
+                                {/* Crosshair overlay representing focus center */}
+                                <div 
+                                  className="absolute w-8 h-8 border-2 border-indigo-400 rounded-full -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none shadow-[0_0_12px_rgba(129,140,248,0.6)]"
+                                  style={{ left: `${envZoomX}%`, top: `${envZoomY}%` }}
+                                >
+                                  <div className="w-2 h-2 bg-indigo-400 rounded-full" />
+                                </div>
+                              </div>
+                              <div className="flex gap-3 text-[9px] text-slate-500 font-mono">
+                                <span>Coordinata X: {envZoomX}%</span>
+                                <span>Coordinata Y: {envZoomY}%</span>
+                              </div>
+                            </div>
+
+                            {/* Zoomed Preview */}
+                            <div className="space-y-2">
+                              <label className="text-[9px] text-slate-400 font-bold block">
+                                Anteprima Zoomata (Cosa vedrà il pubblico)
+                              </label>
+                              <div className="w-full aspect-video rounded-xl overflow-hidden border border-slate-800 bg-slate-950 relative shadow-inner">
+                                <div 
+                                  className="w-full h-full"
+                                  style={{
+                                    backgroundImage: `url(${envImageData})`,
+                                    backgroundSize: `${envZoomScale * 100}%`,
+                                    backgroundPosition: `${envZoomX}% ${envZoomY}%`,
+                                    backgroundRepeat: 'no-repeat'
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Control Sliders */}
+                          <div className="space-y-2 bg-slate-900/60 p-3 rounded-xl border border-slate-850/60">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-400 font-bold uppercase">Livello Zoom ({envZoomScale.toFixed(1)}x)</span>
+                              <input 
+                                type="range" 
+                                min="1.5" 
+                                max="10" 
+                                step="0.1" 
+                                value={envZoomScale}
+                                onChange={(e) => setEnvZoomScale(Number(e.target.value))}
+                                className="w-1/2 accent-indigo-500"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-400 font-bold uppercase">Focal Point X ({envZoomX}%)</span>
+                              <input 
+                                type="range" 
+                                min="0" 
+                                max="100" 
+                                value={envZoomX}
+                                onChange={(e) => setEnvZoomX(Number(e.target.value))}
+                                className="w-1/2 accent-indigo-500"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="text-slate-400 font-bold uppercase">Focal Point Y ({envZoomY}%)</span>
+                              <input 
+                                type="range" 
+                                min="0" 
+                                max="100" 
+                                value={envZoomY}
+                                onChange={(e) => setEnvZoomY(Number(e.target.value))}
+                                className="w-1/2 accent-indigo-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-1">Istruzioni Sfida (Contenuto Interno)</label>
                   <textarea
                     value={envContent}
                     onChange={(e) => setEnvContent(e.target.value)}
                     placeholder="Scrivi qui cosa deve fare la squadra..."
-                    className="w-full h-24 px-3.5 py-2.5 bg-slate-950 border border-slate-850 rounded-xl focus:outline-none focus:border-indigo-500 text-xs text-slate-250 resize-none"
+                    className="w-full h-20 px-3.5 py-2.5 bg-slate-950 border border-slate-850 rounded-xl focus:outline-none focus:border-indigo-500 text-xs text-slate-250 resize-none"
                   />
                 </div>
               </div>

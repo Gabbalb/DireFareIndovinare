@@ -235,27 +235,80 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     </span>
                   </div>
 
-                  {/* Document Body */}
-                  <div className="flex-1 flex flex-col justify-center my-2 text-center z-10">
-                    {animationStep === 'revealed' ? (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.12 }}
-                        className="space-y-4 md:space-y-6"
-                      >
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-cinzel text-slate-950 uppercase tracking-wide leading-tight">
-                          {envelope.title}
-                        </h2>
+                   {/* Document Body */}
+                  <div className="flex-1 flex flex-col justify-center my-2 text-center z-10 w-full overflow-hidden">
+                    {envelope.imageData ? (
+                      (animationStep === 'opened' || animationStep === 'revealed') ? (
+                        <div className="flex-1 flex flex-col justify-between items-center w-full h-full gap-2 sm:gap-4 overflow-hidden">
+                          <div className="text-center z-10 shrink-0">
+                            <h2 className="text-sm sm:text-lg md:text-xl font-black font-cinzel text-slate-950 uppercase tracking-wide">
+                              {envelope.title || 'Indovina la foto!'}
+                            </h2>
+                          </div>
+                          
+                          {/* Image frame */}
+                          <div className="flex-1 w-full max-h-[50vh] min-h-[150px] relative overflow-hidden rounded-xl bg-slate-950 border-2 border-[#d4af37]/35 shadow-2xl flex items-center justify-center">
+                            <motion.img
+                              src={envelope.imageData}
+                              alt="Foto da indovinare"
+                              className="w-full h-full object-cover"
+                              initial={false}
+                              animate={{
+                                scale: animationStep === 'revealed' ? 1 : (envelope.zoomScale ?? 3),
+                              }}
+                              style={{
+                                transformOrigin: `${envelope.zoomX ?? 50}% ${envelope.zoomY ?? 50}%`
+                              }}
+                              transition={{
+                                type: 'spring',
+                                stiffness: 45,
+                                damping: 15,
+                                mass: 1.2
+                              }}
+                            />
+                          </div>
 
-                        <p className="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-serif leading-relaxed italic text-slate-800 max-w-4xl mx-auto pt-2 px-6">
-                          "{envelope.content}"
-                        </p>
-                      </motion.div>
+                          {/* Solution description shown only when revealed */}
+                          <AnimatePresence>
+                            {animationStep === 'revealed' && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="z-10 mt-1 max-w-xl shrink-0"
+                              >
+                                <p className="text-xs sm:text-sm md:text-base font-serif font-bold italic text-slate-800">
+                                  {envelope.content}
+                                </p>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        <div className="text-slate-400 font-cinzel tracking-widest text-xs uppercase animate-pulse">
+                          Sigillo intatto. Rivelare contenuto...
+                        </div>
+                      )
                     ) : (
-                      <div className="text-slate-400 font-cinzel tracking-widest text-xs uppercase animate-pulse">
-                        Sigillo intatto. Rivelare contenuto...
-                      </div>
+                      animationStep === 'revealed' ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.12 }}
+                          className="space-y-4 md:space-y-6"
+                        >
+                          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-cinzel text-slate-950 uppercase tracking-wide leading-tight">
+                            {envelope.title}
+                          </h2>
+
+                          <p className="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-serif leading-relaxed italic text-slate-800 max-w-4xl mx-auto pt-2 px-6">
+                            "{envelope.content}"
+                          </p>
+                        </motion.div>
+                      ) : (
+                        <div className="text-slate-400 font-cinzel tracking-widest text-xs uppercase animate-pulse">
+                          Sigillo intatto. Rivelare contenuto...
+                        </div>
+                      )
                     )}
                   </div>
                 </motion.div>
@@ -347,7 +400,15 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 {/* 2. Flap is open, waiting to reveal */}
                 {animationStep === 'opened' && (
                   <button
-                    onClick={() => onStepChange('revealed')}
+                    onClick={() => {
+                      if (envelope.imageData) {
+                        if (window.confirm("Sei sicuro di voler rivelare la foto originale?")) {
+                          onStepChange('revealed');
+                        }
+                      } else {
+                        onStepChange('revealed');
+                      }
+                    }}
                     className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
                   >
                     <Eye size={16} />

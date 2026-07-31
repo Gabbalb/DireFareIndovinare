@@ -13,6 +13,10 @@ export interface Envelope {
   title: string;
   content: string;
   isOpened: boolean;
+  imageData?: string;
+  zoomScale?: number;
+  zoomX?: number;
+  zoomY?: number;
 }
 
 export interface Category {
