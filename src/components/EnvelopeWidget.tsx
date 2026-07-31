@@ -307,9 +307,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                             />
                           </div>
 
-                          {/* Solution description shown only when completely revealed (step 'photo') */}
+                          {/* Solution description shown only when completely revealed (step 'photo') and it's not a photo envelope */}
                           <AnimatePresence>
-                            {animationStep === 'photo' && (
+                            {animationStep === 'photo' && !envelope.imageData && (
                               <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
