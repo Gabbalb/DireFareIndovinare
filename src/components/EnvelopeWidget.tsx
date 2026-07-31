@@ -239,7 +239,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                   <div className="flex-1 flex flex-col justify-center my-2 text-center z-10 w-full overflow-hidden">
                     {envelope.imageData ? (
                       animationStep === 'opened' ? (
-                        // 1. All'inizio mostra solo le istruzioni/titolo testuale
+                        // 1. All'inizio mostra solo il titolo testuale
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -249,11 +249,11 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                             {envelope.title || 'Indovina la foto!'}
                           </h2>
                           <p className="text-sm sm:text-lg md:text-xl font-serif leading-relaxed italic text-slate-800 max-w-4xl mx-auto pt-2 px-6">
-                            {envelope.content ? `Istruzioni: ${envelope.content}` : "Clicca Avanti per mostrare l'immagine zoommata e iniziare il tentativo!"}
+                            Regolamento: Prova ad indovinare cosa rappresenta l'immagine!
                           </p>
                         </motion.div>
-                      ) : (animationStep === 'photo' || animationStep === 'revealed') ? (
-                        // 2. Mostra la foto (zoommata o intera)
+                      ) : (animationStep === 'revealed' || animationStep === 'photo') ? (
+                        // 2. Mostra la foto (zoommata in 'revealed', intera in 'photo')
                         <div className="flex-1 flex flex-col justify-between items-center w-full h-full gap-2 sm:gap-4 overflow-hidden">
                           <div className="text-center z-10 shrink-0">
                             <h2 className="text-sm sm:text-lg md:text-xl font-black font-cinzel text-slate-950 uppercase tracking-wide">
@@ -269,7 +269,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                               className="w-full h-full object-cover"
                               initial={false}
                               animate={{
-                                scale: animationStep === 'revealed' ? 1 : (envelope.zoomScale ?? 3),
+                                scale: animationStep === 'photo' ? 1 : (envelope.zoomScale ?? 3),
                               }}
                               style={{
                                 transformOrigin: `${envelope.zoomX ?? 50}% ${envelope.zoomY ?? 50}%`
@@ -283,16 +283,16 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                             />
                           </div>
 
-                          {/* Solution description shown only when revealed */}
+                          {/* Solution description shown only when completely revealed (step 'photo') */}
                           <AnimatePresence>
-                            {animationStep === 'revealed' && (
+                            {animationStep === 'photo' && (
                               <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="z-10 mt-1 max-w-xl shrink-0"
                               >
-                                <p className="text-xs sm:text-sm md:text-base font-serif font-bold italic text-slate-800">
-                                  Soluzione Rivelata!
+                                <p className="text-xs sm:text-sm md:text-base font-serif font-bold italic text-slate-800 bg-[#d4af37]/10 px-4 py-2 rounded-lg border border-[#d4af37]/30">
+                                  {envelope.content}
                                 </p>
                               </motion.div>
                             )}
@@ -415,42 +415,32 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
 
                 {/* 2. Flap is open, waiting to reveal */}
                 {animationStep === 'opened' && (
-                  envelope.imageData ? (
-                    <button
-                      onClick={() => onStepChange('photo')}
-                      className="px-6 py-2.5 bg-indigo-650 hover:bg-indigo-600 font-bold font-sans rounded-full flex items-center space-x-2 text-white shadow-lg transition-all animate-bounce"
-                    >
-                      <Play size={16} />
-                      <span>Avanti (Mostra Foto Zoommata)</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => onStepChange('revealed')}
-                      className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
-                    >
-                      <Eye size={16} />
-                      <span>Rivela Contenuto</span>
-                    </button>
-                  )
+                  <button
+                    onClick={() => onStepChange('revealed')}
+                    className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
+                  >
+                    <Eye size={16} />
+                    <span>Rivela Contenuto</span>
+                  </button>
                 )}
 
-                {/* 2.5 Photo is shown zoomed, waiting to reveal original */}
-                {animationStep === 'photo' && envelope.imageData && (
+                {/* 2.5 Zoomed photo is shown, waiting to reveal complete photo */}
+                {animationStep === 'revealed' && envelope.imageData && (
                   <button
                     onClick={() => {
-                      if (window.confirm("Sei sicuro di voler rivelare la foto originale?")) {
-                        onStepChange('revealed');
+                      if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
+                        onStepChange('photo');
                       }
                     }}
                     className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
                   >
                     <Eye size={16} />
-                    <span>Rivela Foto Originale</span>
+                    <span>Mostra Immagine Completa</span>
                   </button>
                 )}
 
                 {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
-                {animationStep === 'revealed' && (
+                {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
                   <div className="flex flex-col items-center gap-3">
                     {!showTeamSelect ? (
                       <div className="flex gap-3 bg-slate-900/90 backdrop-blur-sm p-2 rounded-full border border-slate-700">

@@ -1105,28 +1105,24 @@ const AdminPanel: React.FC<AdminProps> = ({
                 >
                   2. Apri
                 </button>
-                {activeEnvelope.imageData && (
-                  <button 
-                    onClick={() => changeAnimationStep('photo')}
-                    className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
-                  >
-                    3. Mostra Foto
-                  </button>
-                )}
                 <button 
-                  onClick={() => {
-                    if (activeEnvelope.imageData) {
-                      if (window.confirm("Sei sicuro di voler rivelare la foto originale?")) {
-                        changeAnimationStep('revealed');
-                      }
-                    } else {
-                      changeAnimationStep('revealed');
-                    }
-                  }}
+                  onClick={() => changeAnimationStep('revealed')}
                   className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'revealed' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
                 >
-                  {activeEnvelope.imageData ? '4. Rivela Foto' : '3. Rivela Carta'}
+                  {activeEnvelope.imageData ? '3. Zoom Foto' : '3. Rivela Carta'}
                 </button>
+                {activeEnvelope.imageData && (
+                  <button 
+                    onClick={() => {
+                      if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
+                        changeAnimationStep('photo');
+                      }
+                    }}
+                    className={`py-1.5 px-3 rounded-full font-bold transition-all ${animationStep === 'photo' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-800'}`}
+                  >
+                    4. Foto Intera
+                  </button>
+                )}
 
                 <div className="h-6 w-px bg-slate-800 mx-1" />
 
