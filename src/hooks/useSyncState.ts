@@ -75,6 +75,22 @@ export function useSyncState(_role: 'public' | 'admin') {
     return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
   });
 
+  // Timer states
+  const [timerActive, setTimerActive] = useState<boolean>(() => {
+    return localStorage.getItem('direfare_timer_active') === 'true';
+  });
+  const [timerDuration, setTimerDuration] = useState<number>(() => {
+    const saved = localStorage.getItem('direfare_timer_duration');
+    return saved ? parseInt(saved, 10) : 30;
+  });
+  const [timerTimeLeft, setTimerTimeLeft] = useState<number>(() => {
+    const saved = localStorage.getItem('direfare_timer_timeleft');
+    return saved ? parseInt(saved, 10) : 30;
+  });
+  const [timerIsPaused, setTimerIsPaused] = useState<boolean>(() => {
+    return localStorage.getItem('direfare_timer_paused') === 'true';
+  });
+
   // Reference for BroadcastChannel
   const channelRef = useRef<BroadcastChannel | null>(null);
 
@@ -94,6 +110,10 @@ export function useSyncState(_role: 'public' | 'admin') {
           if (payload.animationStep !== undefined) setAnimationStep(payload.animationStep);
           if (payload.pointLevels) setPointLevels(payload.pointLevels);
           if (payload.categories) setCategories(payload.categories);
+          if (payload.timerActive !== undefined) setTimerActive(payload.timerActive);
+          if (payload.timerDuration !== undefined) setTimerDuration(payload.timerDuration);
+          if (payload.timerTimeLeft !== undefined) setTimerTimeLeft(payload.timerTimeLeft);
+          if (payload.timerIsPaused !== undefined) setTimerIsPaused(payload.timerIsPaused);
           break;
 
         case 'TRIGGER_OPEN_ENVELOPE':
@@ -129,6 +149,13 @@ export function useSyncState(_role: 'public' | 'admin') {
         case 'TOGGLE_MUTE':
           setIsMuted(payload.muted);
           break;
+
+        case 'SYNC_TIMER':
+          if (payload.active !== undefined) setTimerActive(payload.active);
+          if (payload.duration !== undefined) setTimerDuration(payload.duration);
+          if (payload.timeLeft !== undefined) setTimerTimeLeft(payload.timeLeft);
+          if (payload.isPaused !== undefined) setTimerIsPaused(payload.isPaused);
+          break;
       }
     };
 
@@ -157,6 +184,18 @@ export function useSyncState(_role: 'public' | 'admin') {
       if (e.key === 'direfare_categories' && e.newValue) {
         setCategories(JSON.parse(e.newValue));
       }
+      if (e.key === 'direfare_timer_active' && e.newValue) {
+        setTimerActive(e.newValue === 'true');
+      }
+      if (e.key === 'direfare_timer_duration' && e.newValue) {
+        setTimerDuration(parseInt(e.newValue, 10));
+      }
+      if (e.key === 'direfare_timer_timeleft' && e.newValue) {
+        setTimerTimeLeft(parseInt(e.newValue, 10));
+      }
+      if (e.key === 'direfare_timer_paused' && e.newValue) {
+        setTimerIsPaused(e.newValue === 'true');
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -167,6 +206,57 @@ export function useSyncState(_role: 'public' | 'admin') {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [isMuted]);
+
+  // Admin Countdown Tick Effect
+  useEffect(() => {
+    if (_role !== 'admin') return;
+    if (!timerActive || timerIsPaused) return;
+
+    const interval = setInterval(() => {
+      setTimerTimeLeft(prev => {
+        const next = prev - 1;
+        
+        localStorage.setItem('direfare_timer_timeleft', next.toString());
+        
+        if (next <= 0) {
+          clearInterval(interval);
+          setTimerActive(false);
+          localStorage.setItem('direfare_timer_active', 'false');
+          
+          // play buzzer
+          playSound.buzzer(isMuted);
+          
+          channelRef.current?.postMessage({
+            type: 'SYNC_TIMER',
+            payload: { active: false, timeLeft: 0 }
+          });
+          
+          channelRef.current?.postMessage({
+            type: 'PLAY_SOUND_EFFECT',
+            payload: { sound: 'buzzer' }
+          });
+          
+          return 0;
+        }
+
+        // Play tick sound
+        playSound.tick(isMuted);
+        channelRef.current?.postMessage({
+          type: 'PLAY_SOUND_EFFECT',
+          payload: { sound: 'tick' }
+        });
+
+        channelRef.current?.postMessage({
+          type: 'SYNC_TIMER',
+          payload: { timeLeft: next }
+        });
+        
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerActive, timerIsPaused, isMuted, _role]);
 
   // Save updates to localStorage and broadcast to other tabs
   const updateTeams = (newTeams: Team[]) => {
@@ -266,7 +356,7 @@ export function useSyncState(_role: 'public' | 'admin') {
     });
   };
 
-  const triggerSound = (soundType: 'zoom' | 'open' | 'reveal' | 'close') => {
+  const triggerSound = (soundType: 'zoom' | 'open' | 'reveal' | 'close' | 'tick' | 'buzzer') => {
     channelRef.current?.postMessage({
       type: 'PLAY_SOUND_EFFECT',
       payload: { sound: soundType }
@@ -283,6 +373,56 @@ export function useSyncState(_role: 'public' | 'admin') {
     updateTeams(resetTeams);
 
     closeEnvelope();
+    stopTimer();
+  };
+
+  const startTimer = (duration: number) => {
+    setTimerDuration(duration);
+    setTimerTimeLeft(duration);
+    setTimerActive(true);
+    setTimerIsPaused(false);
+    
+    localStorage.setItem('direfare_timer_duration', duration.toString());
+    localStorage.setItem('direfare_timer_timeleft', duration.toString());
+    localStorage.setItem('direfare_timer_active', 'true');
+    localStorage.setItem('direfare_timer_paused', 'false');
+
+    channelRef.current?.postMessage({
+      type: 'SYNC_TIMER',
+      payload: { active: true, duration, timeLeft: duration, isPaused: false }
+    });
+    
+    playSound.zoom(isMuted);
+  };
+
+  const pauseTimer = () => {
+    setTimerIsPaused(true);
+    localStorage.setItem('direfare_timer_paused', 'true');
+    channelRef.current?.postMessage({
+      type: 'SYNC_TIMER',
+      payload: { isPaused: true }
+    });
+  };
+
+  const resumeTimer = () => {
+    setTimerIsPaused(false);
+    localStorage.setItem('direfare_timer_paused', 'false');
+    channelRef.current?.postMessage({
+      type: 'SYNC_TIMER',
+      payload: { isPaused: false }
+    });
+  };
+
+  const stopTimer = () => {
+    setTimerActive(false);
+    setTimerIsPaused(false);
+    localStorage.setItem('direfare_timer_active', 'false');
+    localStorage.setItem('direfare_timer_paused', 'false');
+    channelRef.current?.postMessage({
+      type: 'SYNC_TIMER',
+      payload: { active: false, isPaused: false }
+    });
+    playSound.close(isMuted);
   };
 
   return {
@@ -293,6 +433,10 @@ export function useSyncState(_role: 'public' | 'admin') {
     isMuted,
     pointLevels,
     categories,
+    timerActive,
+    timerDuration,
+    timerTimeLeft,
+    timerIsPaused,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
@@ -302,6 +446,10 @@ export function useSyncState(_role: 'public' | 'admin') {
     changeAnimationStep,
     toggleMute,
     triggerSound,
-    resetAllGame
+    resetAllGame,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer
   };
 }

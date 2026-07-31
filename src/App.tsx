@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Volume2, VolumeX, Shield, Users, Mail, RotateCcw, 
   Plus, Trash2, Check, X, Tv, Settings, Sparkles, Edit2, RefreshCw, Award,
-  ChevronUp, ChevronDown
+  ChevronUp, ChevronDown, Play, Pause, Square, Timer
 } from 'lucide-react';
 import { useSyncState } from './hooks/useSyncState';
 import { EnvelopeWidget } from './components/EnvelopeWidget';
@@ -30,6 +30,10 @@ function App() {
     animationStep,
     isMuted,
     pointLevels,
+    timerActive,
+    timerDuration,
+    timerTimeLeft,
+    timerIsPaused,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
@@ -39,7 +43,11 @@ function App() {
     changeAnimationStep,
     toggleMute,
     triggerSound,
-    resetAllGame
+    resetAllGame,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer
   } = useSyncState(route === '#/admin' ? 'admin' : 'public');
 
   // Handle marking an envelope as opened (giving or not points to team)
@@ -82,6 +90,10 @@ function App() {
         animationStep={animationStep}
         isMuted={isMuted}
         pointLevels={pointLevels}
+        timerActive={timerActive}
+        timerDuration={timerDuration}
+        timerTimeLeft={timerTimeLeft}
+        timerIsPaused={timerIsPaused}
         updateTeams={updateTeams}
         updateEnvelopes={updateEnvelopes}
         updatePointLevels={updatePointLevels}
@@ -93,6 +105,10 @@ function App() {
         triggerSound={triggerSound}
         resetAllGame={resetAllGame}
         handleMarkAsOpened={handleMarkAsOpened}
+        startTimer={startTimer}
+        pauseTimer={pauseTimer}
+        resumeTimer={resumeTimer}
+        stopTimer={stopTimer}
       />
     );
   }
@@ -105,6 +121,10 @@ function App() {
       activeEnvelopeId={activeEnvelopeId}
       animationStep={animationStep}
       isMuted={isMuted}
+      timerActive={timerActive}
+      timerDuration={timerDuration}
+      timerTimeLeft={timerTimeLeft}
+      timerIsPaused={timerIsPaused}
       openEnvelope={openEnvelope}
       closeEnvelope={closeEnvelope}
       changeAnimationStep={changeAnimationStep}
@@ -124,6 +144,10 @@ interface PublicProps {
   activeEnvelopeId: string | null;
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   isMuted: boolean;
+  timerActive: boolean;
+  timerDuration: number;
+  timerTimeLeft: number;
+  timerIsPaused: boolean;
   openEnvelope: (id: string) => void;
   closeEnvelope: () => void;
   changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
@@ -138,6 +162,10 @@ const PublicProjectionView: React.FC<PublicProps> = ({
   activeEnvelopeId,
   animationStep,
   isMuted,
+  timerActive,
+  timerDuration,
+  timerTimeLeft,
+  timerIsPaused,
   openEnvelope,
   closeEnvelope,
   changeAnimationStep,
@@ -145,7 +173,8 @@ const PublicProjectionView: React.FC<PublicProps> = ({
   handleMarkAsOpened
 }) => {
   return (
-    <div className="min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-10">
+    <>
+    <div className={`min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-10 transition-all duration-500 ${timerActive ? 'blur-[8px]' : ''}`}>
       
       {/* Glow Effects in background */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -286,6 +315,14 @@ const PublicProjectionView: React.FC<PublicProps> = ({
         <p className="hidden md:block">Apri questa finestra a schermo intero (F11)</p>
       </footer>
     </div>
+    <CountdownOverlay
+      timerActive={timerActive}
+      timerTimeLeft={timerTimeLeft}
+      timerDuration={timerDuration}
+      timerIsPaused={timerIsPaused}
+      isAdmin={false}
+    />
+    </>
   );
 };
 
@@ -300,6 +337,10 @@ interface AdminProps {
   animationStep: 'closed' | 'zoomed' | 'opened' | 'revealed';
   isMuted: boolean;
   pointLevels: number[];
+  timerActive: boolean;
+  timerDuration: number;
+  timerTimeLeft: number;
+  timerIsPaused: boolean;
   updateTeams: (teams: Team[]) => void;
   updateEnvelopes: (envelopes: Envelope[]) => void;
   updatePointLevels: (levels: number[]) => void;
@@ -308,9 +349,13 @@ interface AdminProps {
   closeEnvelope: () => void;
   changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'revealed') => void;
   toggleMute: () => void;
-  triggerSound: (sound: 'zoom' | 'open' | 'reveal' | 'close') => void;
+  triggerSound: (sound: 'zoom' | 'open' | 'reveal' | 'close' | 'tick' | 'buzzer') => void;
   resetAllGame: () => void;
   handleMarkAsOpened: (id: string, success: boolean, points: number, winningTeamId: string | null) => void;
+  startTimer: (duration: number) => void;
+  pauseTimer: () => void;
+  resumeTimer: () => void;
+  stopTimer: () => void;
 }
 
 const AdminPanel: React.FC<AdminProps> = ({
@@ -321,6 +366,10 @@ const AdminPanel: React.FC<AdminProps> = ({
   animationStep,
   isMuted,
   pointLevels,
+  timerActive,
+  timerDuration,
+  timerTimeLeft,
+  timerIsPaused,
   updateTeams,
   updateEnvelopes,
   updatePointLevels,
@@ -331,7 +380,11 @@ const AdminPanel: React.FC<AdminProps> = ({
   toggleMute,
   triggerSound,
   resetAllGame,
-  handleMarkAsOpened
+  handleMarkAsOpened,
+  startTimer,
+  pauseTimer,
+  resumeTimer,
+  stopTimer
 }) => {
   const [pin, setPin] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -340,6 +393,13 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [pinError, setPinError] = useState(false);
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const [showAdminControllerTeamSelect, setShowAdminControllerTeamSelect] = useState(false);
+
+  const [timerPresets, setTimerPresets] = useState<number[]>(() => {
+    const saved = localStorage.getItem('direfare_timer_presets');
+    return saved ? JSON.parse(saved) : [30, 60, 120];
+  });
+  const [customSeconds, setCustomSeconds] = useState<string>('');
+  const [showTimerSetup, setShowTimerSetup] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -721,7 +781,8 @@ const AdminPanel: React.FC<AdminProps> = ({
   const activeEnvelope = envelopes.find(e => e.id === activeEnvelopeId);
 
   return (
-    <div className="min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-28">
+    <>
+    <div className={`min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-28 transition-all duration-500 ${timerActive ? 'blur-[8px]' : ''}`}>
       
       {/* Header (Mirroring public screen but customized for admin) */}
       <header className="relative w-full border-b border-slate-900 bg-slate-950/60 backdrop-blur-md px-6 py-3 flex justify-between items-center z-30 shadow-lg">
@@ -1050,6 +1111,14 @@ const AdminPanel: React.FC<AdminProps> = ({
               >
                 <Plus size={13} />
                 <span>Nuova Busta</span>
+              </button>
+
+              <button
+                onClick={() => setShowTimerSetup(true)}
+                className="flex-1 md:flex-none px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow"
+              >
+                <Timer size={13} />
+                <span>Timer</span>
               </button>
               
               <button
@@ -1513,7 +1582,282 @@ const AdminPanel: React.FC<AdminProps> = ({
         )}
       </AnimatePresence>
 
+      {/* E. TIMER SETUP MODAL */}
+      <AnimatePresence>
+        {showTimerSetup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setShowTimerSetup(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl z-10 text-slate-100"
+            >
+              <h3 className="font-cinzel text-lg font-bold tracking-wider text-slate-100 border-b border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                <Timer className="text-amber-400" size={20} />
+                <span>CONFIGURAZIONE TIMER</span>
+              </h3>
+
+              <div className="space-y-6">
+                {/* Preset List */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">
+                    Avvio Rapido (Preset)
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {timerPresets.map((sec, idx) => {
+                      const label = sec >= 60 ? `${sec / 60}m` : `${sec}s`;
+                      return (
+                        <div key={idx} className="flex items-center bg-slate-950 rounded-xl border border-slate-850 p-1">
+                          <button
+                            onClick={() => {
+                              startTimer(sec);
+                              setShowTimerSetup(false);
+                            }}
+                            className="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-900 rounded-lg transition-all cursor-pointer"
+                          >
+                            {label}
+                          </button>
+                          {timerPresets.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const updated = timerPresets.filter((_, pIdx) => pIdx !== idx);
+                                setTimerPresets(updated);
+                                localStorage.setItem('direfare_timer_presets', JSON.stringify(updated));
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                              title="Rimuovi"
+                            >
+                              <X size={10} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom input */}
+                <div className="border-t border-slate-800/60 pt-4">
+                  <label className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">
+                    Durata Personalizzata
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="1"
+                        max="3600"
+                        value={customSeconds}
+                        onChange={(e) => setCustomSeconds(e.target.value)}
+                        placeholder="Es. 30 o 45"
+                        className="w-full pl-3.5 pr-20 py-2.5 bg-slate-950 border border-slate-850 rounded-xl focus:outline-none focus:border-indigo-500 text-slate-200 text-sm font-sans"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = parseInt(customSeconds, 10);
+                            if (val > 0) {
+                              startTimer(val);
+                              setShowTimerSetup(false);
+                            }
+                          }
+                        }}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold">
+                        SEC
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        const val = parseInt(customSeconds, 10);
+                        if (!val || val <= 0) return;
+                        if (timerPresets.includes(val)) return;
+                        const updated = [...timerPresets, val].sort((a, b) => a - b);
+                        setTimerPresets(updated);
+                        localStorage.setItem('direfare_timer_presets', JSON.stringify(updated));
+                        setCustomSeconds('');
+                      }}
+                      className="px-3.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-300 font-bold rounded-xl text-xs cursor-pointer transition-all"
+                      title="Salva come pulsante rapido"
+                    >
+                      Aggiungi
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2">
+                    Inserisci il tempo in secondi (es. 45) e premi Invio per avviare o clicca Aggiungi per creare un preset.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 mt-6 border-t border-slate-800 pt-4">
+                <button
+                  onClick={() => setShowTimerSetup(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-450 font-semibold rounded-xl text-xs cursor-pointer"
+                >
+                  Chiudi
+                </button>
+                <button
+                  onClick={() => {
+                    const val = parseInt(customSeconds, 10);
+                    if (val && val > 0) {
+                      startTimer(val);
+                      setShowTimerSetup(false);
+                    } else {
+                      startTimer(30);
+                      setShowTimerSetup(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs cursor-pointer flex items-center gap-1 shadow-md"
+                >
+                  <Play size={12} fill="currentColor" />
+                  <span>Avvia ({customSeconds ? `${customSeconds}s` : '30s'})</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
+    <CountdownOverlay
+      timerActive={timerActive}
+      timerTimeLeft={timerTimeLeft}
+      timerDuration={timerDuration}
+      timerIsPaused={timerIsPaused}
+      isAdmin={true}
+      onPause={pauseTimer}
+      onResume={resumeTimer}
+      onStop={stopTimer}
+    />
+    </>
+  );
+};
+
+// -------------------------------------------------------------
+// 5. COUNTDOWN TIMER OVERLAY
+// -------------------------------------------------------------
+interface CountdownOverlayProps {
+  timerActive: boolean;
+  timerTimeLeft: number;
+  timerDuration: number;
+  timerIsPaused: boolean;
+  isAdmin: boolean;
+  onPause?: () => void;
+  onResume?: () => void;
+  onStop?: () => void;
+}
+
+const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
+  timerActive,
+  timerTimeLeft,
+  timerDuration,
+  timerIsPaused,
+  isAdmin,
+  onPause,
+  onResume,
+  onStop
+}) => {
+  if (!timerActive) return null;
+
+  // Calculate percentage for progress circle
+  const percentage = (timerTimeLeft / timerDuration) * 100;
+  const strokeDashoffset = 502 - (502 * percentage) / 100; // 502 is circumference for r=80
+
+  // Format time as mm:ss or just ss
+  const formatTime = (seconds: number) => {
+    if (seconds >= 60) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    return seconds.toString();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-2xl"
+    >
+      {/* Visual ambient glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[500px] md:h-[500px] bg-amber-500/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none" />
+      
+      <div className="relative flex flex-col items-center justify-center p-8 max-w-md w-full text-center">
+        {/* Circle Progress Tracker */}
+        <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center">
+          <svg className="absolute w-full h-full -rotate-90">
+            <circle
+              cx="50%"
+              cy="50%"
+              r="80"
+              className="stroke-slate-800/40 fill-none"
+              strokeWidth="6"
+            />
+            <motion.circle
+              cx="50%"
+              cy="50%"
+              r="80"
+              className="stroke-amber-400 fill-none"
+              strokeWidth="6"
+              strokeDasharray="502"
+              animate={{ strokeDashoffset }}
+              transition={{ duration: 0.3, ease: "linear" }}
+              strokeLinecap="round"
+            />
+          </svg>
+
+          {/* Time digits */}
+          <div className="flex flex-col items-center justify-center z-10">
+            <span className="text-8xl md:text-9xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-400 to-amber-500 drop-shadow-[0_0_30px_rgba(245,158,11,0.25)] select-none">
+              {formatTime(timerTimeLeft)}
+            </span>
+            {timerIsPaused && (
+              <span className="text-xs uppercase tracking-widest font-bold text-rose-400 animate-pulse mt-2">
+                IN PAUSA
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Admin Controls Panel */}
+        {isAdmin && (
+          <div className="mt-8 flex items-center gap-4 z-10">
+            {timerIsPaused ? (
+              <button
+                onClick={onResume}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-full flex items-center gap-1.5 shadow-lg border border-emerald-400/20 cursor-pointer transition-all hover:scale-105"
+              >
+                <Play size={16} />
+                <span>Riprendi</span>
+              </button>
+            ) : (
+              <button
+                onClick={onPause}
+                className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-full flex items-center gap-1.5 shadow-lg border border-amber-300/30 cursor-pointer transition-all hover:scale-105"
+              >
+                <Pause size={16} />
+                <span>Pausa</span>
+              </button>
+            )}
+
+            <button
+              onClick={onStop}
+              className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-full flex items-center gap-1.5 shadow-lg border border-rose-500/25 cursor-pointer transition-all hover:scale-105"
+            >
+              <Square size={14} fill="currentColor" />
+              <span>Annulla</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 };
 

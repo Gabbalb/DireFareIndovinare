@@ -178,5 +178,64 @@ export const playSound = {
     } catch (e) {
       console.warn('Audio playback failed', e);
     }
+  },
+
+  // Tick sound: short high-pitched click
+  tick: (muted: boolean) => {
+    if (muted) return;
+    try {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      
+      gain.gain.setValueAtTime(0.03, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } catch (e) {
+      console.warn('Audio playback failed', e);
+    }
+  },
+
+  // Buzzer sound: double detuned sawtooth wave representing game show buzzer
+  buzzer: (muted: boolean) => {
+    if (muted) return;
+    try {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+      
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(100, now);
+      
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(103, now);
+      
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.6);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.8);
+      osc2.stop(now + 0.8);
+    } catch (e) {
+      console.warn('Audio playback failed', e);
+    }
   }
 };
