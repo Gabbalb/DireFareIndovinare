@@ -367,7 +367,6 @@ const AdminPanel: React.FC<AdminProps> = ({
   isMuted,
   pointLevels,
   timerActive,
-  timerDuration,
   timerTimeLeft,
   timerIsPaused,
   updateTeams,
@@ -393,6 +392,13 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [pinError, setPinError] = useState(false);
   const [isFooterExpanded, setIsFooterExpanded] = useState(false);
   const [showAdminControllerTeamSelect, setShowAdminControllerTeamSelect] = useState(false);
+  const [adminMode, setAdminMode] = useState<'proietta' | 'modifica'>(() => {
+    return (localStorage.getItem('direfare_admin_mode') as 'proietta' | 'modifica') || 'proietta';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('direfare_admin_mode', adminMode);
+  }, [adminMode]);
 
   const [timerPresets, setTimerPresets] = useState<number[]>(() => {
     const saved = localStorage.getItem('direfare_timer_presets');
@@ -782,10 +788,10 @@ const AdminPanel: React.FC<AdminProps> = ({
 
   return (
     <>
-    <div className={`min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-28 transition-all duration-500 ${timerActive ? 'blur-[8px]' : ''}`}>
+    <div className="min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-28 transition-all duration-500">
       
       {/* Header (Mirroring public screen but customized for admin) */}
-      <header className="relative w-full border-b border-slate-900 bg-slate-950/60 backdrop-blur-md px-6 py-3 flex justify-between items-center z-30 shadow-lg">
+      <header className="relative w-full border-b border-slate-900 bg-slate-950/60 backdrop-blur-md px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4 z-30 shadow-lg">
         <div className="flex items-center space-x-3">
           <Settings className="text-indigo-400 animate-spin-slow" size={22} />
           <div>
@@ -796,6 +802,32 @@ const AdminPanel: React.FC<AdminProps> = ({
               Controllo speculare del tabellone proiettato
             </p>
           </div>
+        </div>
+
+        {/* Toggle Mode Switcher */}
+        <div className="flex bg-slate-900/90 p-1 rounded-full border border-slate-800 shadow-inner">
+          <button
+            onClick={() => setAdminMode('proietta')}
+            className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              adminMode === 'proietta'
+                ? 'bg-indigo-600 text-white shadow-lg border border-indigo-500/20'
+                : 'text-slate-450 hover:text-slate-200'
+            }`}
+          >
+            <Tv size={13} />
+            <span>PROIETTA</span>
+          </button>
+          <button
+            onClick={() => setAdminMode('modifica')}
+            className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              adminMode === 'modifica'
+                ? 'bg-amber-500 text-slate-950 shadow-lg font-black'
+                : 'text-slate-450 hover:text-slate-200'
+            }`}
+          >
+            <Edit2 size={13} />
+            <span>MODIFICA</span>
+          </button>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -815,6 +847,63 @@ const AdminPanel: React.FC<AdminProps> = ({
           </button>
         </div>
       </header>
+
+      {/* Mini-Timer Regia Controller (Only shown when timer is running/paused) */}
+      {timerActive && (
+        <div className="w-full bg-slate-900 border-b border-indigo-500/20 py-2 px-6 flex justify-between items-center z-25 shadow-md">
+          <div className="flex items-center space-x-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${timerIsPaused ? 'bg-amber-400' : 'bg-rose-500'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${timerIsPaused ? 'bg-amber-500' : 'bg-rose-600'}`}></span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              TIMER ATTIVO {timerIsPaused && '(IN PAUSA)'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-6">
+            {/* Time Left display */}
+            <div className="flex items-baseline space-x-1">
+              <span className="text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-500 tracking-tight animate-pulse">
+                {timerTimeLeft}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">sec</span>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              {timerIsPaused ? (
+                <button
+                  onClick={resumeTimer}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer transition-all"
+                  title="Riprendi"
+                >
+                  <Play size={10} fill="currentColor" />
+                  <span>Riprendi</span>
+                </button>
+              ) : (
+                <button
+                  onClick={pauseTimer}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-full text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer transition-all"
+                  title="Pausa"
+                >
+                  <Pause size={10} fill="currentColor" />
+                  <span>Pausa</span>
+                </button>
+              )}
+              
+              <button
+                onClick={stopTimer}
+                className="px-3 py-1.5 bg-rose-650 hover:bg-rose-550 text-white rounded-full text-xs font-bold flex items-center gap-1 shadow border border-rose-500/10 cursor-pointer transition-all"
+                title="Ferma e Annulla"
+              >
+                <Square size={10} fill="currentColor" />
+                <span>Annulla</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Specular Columns Grid */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-6 flex flex-col justify-between">
@@ -846,13 +935,23 @@ const AdminPanel: React.FC<AdminProps> = ({
                   <div className="flex flex-col space-y-4 lg:space-y-6">
                     {catEnvelopes.map((env, idx) => {
                       const catColor = cat.color;
-                      
-                      return (
+                                          return (
                         <div key={env.id} className="relative group">
                           
                           {/* Outer standard card */}
                           <div
-                            className={`relative w-full aspect-[3/2] rounded-xl overflow-hidden shadow border transition-all duration-300 ${
+                            onClick={() => {
+                              if (adminMode === 'proietta') {
+                                if (!env.isOpened) {
+                                  openEnvelope(env.id);
+                                }
+                              } else {
+                                startEditEnvelope(env);
+                              }
+                            }}
+                            className={`relative w-full aspect-[3/2] rounded-xl overflow-hidden shadow border transition-all duration-300 cursor-pointer ${
+                              adminMode === 'modifica' ? 'border-dashed border-amber-500/40 hover:scale-[1.02] hover:border-amber-400' : 'hover:scale-[1.03] hover:-translate-y-1'
+                            } ${
                               env.isOpened 
                                 ? 'opacity-40 grayscale border-slate-700 bg-slate-900/50' 
                                 : 'border-white/10'
@@ -888,7 +987,7 @@ const AdminPanel: React.FC<AdminProps> = ({
                                 <h3 className="font-bold tracking-wide truncate">{env.isOpened ? 'GIÀ APERTA' : 'DISPONIBILE'}</h3>
                               </div>
                             </div>
-
+                            
                             {/* Seal */}
                             {!env.isOpened && (
                               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
@@ -904,32 +1003,43 @@ const AdminPanel: React.FC<AdminProps> = ({
                             )}
                           </div>
 
-                          {/* Hover Admin Actions Panel overlay */}
-                          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2.5 transition-all duration-200 z-30 p-2">
-                            <button
+                          {/* Hover Action Overlay based on Admin Mode */}
+                          {adminMode === 'proietta' && !env.isOpened && (
+                            <div 
                               onClick={() => openEnvelope(env.id)}
-                              disabled={env.isOpened}
-                              className="p-2 bg-indigo-600 disabled:opacity-40 hover:bg-indigo-500 text-white rounded-full transition-transform hover:scale-105 active:scale-95 cursor-pointer shadow-md"
-                              title="Proietta / Apri Busta"
+                              className="absolute inset-0 bg-indigo-950/70 backdrop-blur-[1px] rounded-xl opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1 transition-all duration-200 z-30 cursor-pointer"
                             >
-                              <Tv size={15} />
-                            </button>
-                            <button
-                              onClick={() => startEditEnvelope(env)}
-                              className="p-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-full transition-transform hover:scale-105 active:scale-95 cursor-pointer shadow-md"
-                              title="Modifica Contenuto"
-                            >
-                              <Edit2 size={15} />
-                            </button>
-                            <button
-                              onClick={() => deleteEnvelope(env.id)}
-                              className="p-2 bg-rose-600 hover:bg-rose-500 text-white rounded-full transition-transform hover:scale-105 active:scale-95 cursor-pointer shadow-md"
-                              title="Elimina Busta"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
+                              <Tv size={26} className="text-white animate-bounce" style={{ animationDuration: '2s' }} />
+                              <span className="text-[10px] font-black tracking-widest text-indigo-200 uppercase">PROIETTA SFIDA</span>
+                            </div>
+                          )}
 
+                          {adminMode === 'modifica' && (
+                            <div 
+                              className="absolute inset-0 bg-slate-950/80 backdrop-blur-[1.5px] rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-all duration-200 z-30 p-2"
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startEditEnvelope(env);
+                                }}
+                                className="p-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-full transition-transform hover:scale-110 active:scale-95 cursor-pointer shadow-md"
+                                title="Modifica Contenuto"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteEnvelope(env.id);
+                                }}
+                                className="p-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-full transition-transform hover:scale-110 active:scale-95 cursor-pointer shadow-md"
+                                title="Elimina Busta"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1064,29 +1174,35 @@ const AdminPanel: React.FC<AdminProps> = ({
                   >
                     +50
                   </button>
-                  <button
-                    onClick={() => startEditTeam(team)}
-                    className="p-1 rounded text-slate-450 hover:text-indigo-400 transition-colors ml-1"
-                    title="Modifica Squadra"
-                  >
-                    <Edit2 size={10} />
-                  </button>
-                  <button
-                    onClick={() => removeTeam(team.id)}
-                    className="p-1 rounded text-slate-450 hover:text-rose-450 transition-colors"
-                    title="Elimina Squadra"
-                  >
-                    <Trash2 size={10} />
-                  </button>
+                  {adminMode === 'modifica' && (
+                    <>
+                      <button
+                        onClick={() => startEditTeam(team)}
+                        className="p-1 rounded text-slate-450 hover:text-indigo-400 transition-colors ml-1 cursor-pointer"
+                        title="Modifica Squadra"
+                      >
+                        <Edit2 size={10} />
+                      </button>
+                      <button
+                        onClick={() => removeTeam(team.id)}
+                        className="p-1 rounded text-slate-450 hover:text-rose-450 transition-colors cursor-pointer"
+                        title="Elimina Squadra"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </>
+                  )}
                 </div>
               ))}
-              <button
-                onClick={startAddTeam}
-                className="p-1 bg-indigo-600 hover:bg-indigo-500 rounded-full text-white transition-all cursor-pointer shrink-0"
-                title="Aggiungi Nuova Squadra"
-              >
-                <Plus size={12} />
-              </button>
+              {adminMode === 'modifica' && (
+                <button
+                  onClick={startAddTeam}
+                  className="p-1 bg-indigo-600 hover:bg-indigo-500 rounded-full text-white transition-all cursor-pointer shrink-0"
+                  title="Aggiungi Nuova Squadra"
+                >
+                  <Plus size={12} />
+                </button>
+              )}
             </div>
 
             {/* Mobile Expand / Collapse Controls Toggler */}
@@ -1105,13 +1221,15 @@ const AdminPanel: React.FC<AdminProps> = ({
           <div className={`${isFooterExpanded ? 'flex' : 'hidden'} md:flex flex-col md:flex-row justify-between items-center gap-4 pt-2 md:pt-0 border-t border-slate-800/40 md:border-none`}>
             {/* Center: Global Actions */}
             <div className="w-full md:w-auto flex flex-wrap items-center justify-center md:justify-start gap-2">
-              <button
-                onClick={startAddEnvelope}
-                className="flex-1 md:flex-none px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-all shadow"
-              >
-                <Plus size={13} />
-                <span>Nuova Busta</span>
-              </button>
+              {adminMode === 'modifica' && (
+                <button
+                  onClick={startAddEnvelope}
+                  className="flex-1 md:flex-none px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-all shadow"
+                >
+                  <Plus size={13} />
+                  <span>Nuova Busta</span>
+                </button>
+              )}
 
               <button
                 onClick={() => setShowTimerSetup(true)}
@@ -1121,21 +1239,25 @@ const AdminPanel: React.FC<AdminProps> = ({
                 <span>Timer</span>
               </button>
               
-              <button
-                onClick={() => setIsPointsModalOpen(true)}
-                className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-              >
-                <RefreshCw size={12} />
-                <span>Punteggi Griglia</span>
-              </button>
+              {adminMode === 'modifica' && (
+                <>
+                  <button
+                    onClick={() => setIsPointsModalOpen(true)}
+                    className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Punteggi Griglia</span>
+                  </button>
 
-              <button
-                onClick={() => setIsCategoryModalOpen(true)}
-                className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-              >
-                <Settings size={12} />
-                <span>Personalizza Colonne</span>
-              </button>
+                  <button
+                    onClick={() => setIsCategoryModalOpen(true)}
+                    className="flex-1 md:flex-none px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                  >
+                    <Settings size={12} />
+                    <span>Personalizza Colonne</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => {
@@ -1149,31 +1271,35 @@ const AdminPanel: React.FC<AdminProps> = ({
                 <span>Reset Partita</span>
               </button>
 
-              <div className="h-4 w-px bg-slate-800 hidden md:block mx-1" />
+              {adminMode === 'modifica' && (
+                <>
+                  <div className="h-4 w-px bg-slate-800 hidden md:block mx-1" />
 
-              <button
-                onClick={exportGameSetup}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-                title="Esporta tutta la configurazione in un file JSON"
-              >
-                <span>Esporta Config.</span>
-              </button>
+                  <button
+                    onClick={exportGameSetup}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                    title="Esporta tutta la configurazione in un file JSON"
+                  >
+                    <span>Esporta Config.</span>
+                  </button>
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
-                title="Importa configurazione da un file JSON"
-              >
-                <span>Importa Config.</span>
-              </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-indigo-400 rounded-full text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all"
+                    title="Importa configurazione da un file JSON"
+                  >
+                    <span>Importa Config.</span>
+                  </button>
 
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={importGameSetup} 
-                accept=".json" 
-                className="hidden" 
-              />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={importGameSetup} 
+                    accept=".json" 
+                    className="hidden" 
+                  />
+                </>
+              )}
             </div>
 
             {/* Right: Sound effects cue deck */}
@@ -1725,16 +1851,6 @@ const AdminPanel: React.FC<AdminProps> = ({
       </AnimatePresence>
 
     </div>
-    <CountdownOverlay
-      timerActive={timerActive}
-      timerTimeLeft={timerTimeLeft}
-      timerDuration={timerDuration}
-      timerIsPaused={timerIsPaused}
-      isAdmin={true}
-      onPause={pauseTimer}
-      onResume={resumeTimer}
-      onStop={stopTimer}
-    />
     </>
   );
 };
@@ -1785,14 +1901,14 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
       {/* Visual ambient glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] md:w-[500px] md:h-[500px] bg-amber-500/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none" />
       
-      <div className="relative flex flex-col items-center justify-center p-8 max-w-md w-full text-center">     
+      <div className="relative flex flex-col items-center justify-center p-4 max-w-none w-full h-full text-center">     
           {/* Time digits */}
-          <div className="flex flex-col items-center justify-center z-10">
-            <span className="text-8xl md:text-9xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-400 to-amber-500 drop-shadow-[0_0_30px_rgba(245,158,11,0.25)] select-none">
+          <div className="flex flex-col items-center justify-center z-10 w-full">
+            <span className="text-[35vh] md:text-[45vh] font-black font-mono leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-400 to-amber-500 drop-shadow-[0_0_60px_rgba(245,158,11,0.4)] select-none">
               {formatTime(timerTimeLeft)}
             </span>
             {timerIsPaused && (
-              <span className="text-xs uppercase tracking-widest font-bold text-rose-400 animate-pulse mt-2">
+              <span className="text-xl md:text-3xl lg:text-4xl uppercase tracking-[0.25em] font-black text-rose-400 animate-pulse mt-4">
                 IN PAUSA
               </span>
             )}

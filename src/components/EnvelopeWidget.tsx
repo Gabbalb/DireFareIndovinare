@@ -215,7 +215,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     damping: 18,
                     mass: 1.1
                   }}
-                  className={`absolute bg-amber-50 rounded-lg p-5 flex flex-col justify-between text-slate-900 overflow-hidden transform-style-3d transition-all duration-300 ${
+                  className={`absolute bg-amber-50 rounded-lg p-6 md:p-10 flex flex-col justify-between text-slate-900 overflow-hidden transform-style-3d transition-all duration-300 ${
                     animationStep === 'revealed' 
                       ? 'inset-x-[-4%] top-[-10%] bottom-[-10%] sm:inset-x-[-10%] sm:top-[-20%] sm:bottom-[-20%] md:inset-x-[-20%] md:top-[-30%] md:bottom-[-30%]' 
                       : 'inset-x-6 top-6 bottom-6'
@@ -242,13 +242,13 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.12 }}
-                        className="space-y-3"
+                        className="space-y-4 md:space-y-6"
                       >
-                        <h2 className="text-xl md:text-2xl font-black font-cinzel text-slate-950 uppercase tracking-wide">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-cinzel text-slate-950 uppercase tracking-wide leading-tight">
                           {envelope.title}
                         </h2>
 
-                        <p className="text-sm md:text-lg lg:text-xl font-serif leading-relaxed italic text-slate-800 max-w-xl mx-auto pt-1 px-4">
+                        <p className="text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-serif leading-relaxed italic text-slate-800 max-w-4xl mx-auto pt-2 px-6">
                           "{envelope.content}"
                         </p>
                       </motion.div>
