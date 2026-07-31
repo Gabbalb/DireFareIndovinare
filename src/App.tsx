@@ -1756,7 +1756,6 @@ interface CountdownOverlayProps {
 const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
   timerActive,
   timerTimeLeft,
-  timerDuration,
   timerIsPaused,
   isAdmin,
   onPause,
@@ -1765,9 +1764,6 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({
 }) => {
   if (!timerActive) return null;
 
-  // Calculate percentage for progress circle
-  const percentage = (timerTimeLeft / timerDuration) * 100;
-  const strokeDashoffset = 502 - (502 * percentage) / 100; // 502 is circumference for r=80
 
   // Format time as mm:ss or just ss
   const formatTime = (seconds: number) => {
