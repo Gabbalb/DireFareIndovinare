@@ -34,6 +34,7 @@ function App() {
     timerDuration,
     timerTimeLeft,
     timerIsPaused,
+    timerDisplayMode,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,
@@ -94,6 +95,7 @@ function App() {
         timerDuration={timerDuration}
         timerTimeLeft={timerTimeLeft}
         timerIsPaused={timerIsPaused}
+        timerDisplayMode={timerDisplayMode}
         updateTeams={updateTeams}
         updateEnvelopes={updateEnvelopes}
         updatePointLevels={updatePointLevels}
@@ -125,6 +127,7 @@ function App() {
       timerDuration={timerDuration}
       timerTimeLeft={timerTimeLeft}
       timerIsPaused={timerIsPaused}
+      timerDisplayMode={timerDisplayMode}
       openEnvelope={openEnvelope}
       closeEnvelope={closeEnvelope}
       changeAnimationStep={changeAnimationStep}
@@ -148,6 +151,7 @@ interface PublicProps {
   timerDuration: number;
   timerTimeLeft: number;
   timerIsPaused: boolean;
+  timerDisplayMode: 'fullscreen' | 'bubble';
   openEnvelope: (id: string) => void;
   closeEnvelope: () => void;
   changeAnimationStep: (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => void;
@@ -166,6 +170,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
   timerDuration,
   timerTimeLeft,
   timerIsPaused,
+  timerDisplayMode,
   openEnvelope,
   closeEnvelope,
   changeAnimationStep,
@@ -174,7 +179,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
 }) => {
   return (
     <>
-    <div className={`min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-10 transition-all duration-500 ${timerActive ? 'blur-[8px]' : ''}`}>
+    <div className={`min-h-screen bg-bg-dark bg-grid-pattern relative flex flex-col text-slate-100 font-sans pb-10 transition-all duration-500 ${timerActive && timerDisplayMode === 'fullscreen' ? 'blur-[8px]' : ''}`}>
       
       {/* Glow Effects in background */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -260,6 +265,10 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                           onMarkAsOpened={handleMarkAsOpened}
                           role="public"
                           displayLabel={`${cat.name} ${idx + 1}`}
+                          timerActive={timerActive}
+                          timerTimeLeft={timerTimeLeft}
+                          timerIsPaused={timerIsPaused}
+                          timerDisplayMode={timerDisplayMode}
                         />
                       );
                     })}
@@ -316,7 +325,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
       </footer>
     </div>
     <CountdownOverlay
-      timerActive={timerActive}
+      timerActive={timerActive && timerDisplayMode === 'fullscreen'}
       timerTimeLeft={timerTimeLeft}
       timerDuration={timerDuration}
       timerIsPaused={timerIsPaused}
@@ -341,6 +350,7 @@ interface AdminProps {
   timerDuration: number;
   timerTimeLeft: number;
   timerIsPaused: boolean;
+  timerDisplayMode: 'fullscreen' | 'bubble';
   updateTeams: (teams: Team[]) => void;
   updateEnvelopes: (envelopes: Envelope[]) => void;
   updatePointLevels: (levels: number[]) => void;
@@ -352,7 +362,7 @@ interface AdminProps {
   triggerSound: (sound: 'zoom' | 'open' | 'reveal' | 'close' | 'tick' | 'buzzer') => void;
   resetAllGame: () => void;
   handleMarkAsOpened: (id: string, success: boolean, points: number, winningTeamId: string | null) => void;
-  startTimer: (duration: number) => void;
+  startTimer: (duration: number, displayMode?: 'fullscreen' | 'bubble') => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
@@ -369,6 +379,7 @@ const AdminPanel: React.FC<AdminProps> = ({
   timerActive,
   timerTimeLeft,
   timerIsPaused,
+  timerDisplayMode,
   updateTeams,
   updateEnvelopes,
   updatePointLevels,
@@ -395,6 +406,12 @@ const AdminPanel: React.FC<AdminProps> = ({
   const [adminMode, setAdminMode] = useState<'proietta' | 'modifica'>(() => {
     return (localStorage.getItem('direfare_admin_mode') as 'proietta' | 'modifica') || 'proietta';
   });
+
+  const [localDisplayMode, setLocalDisplayMode] = useState<'fullscreen' | 'bubble'>(timerDisplayMode);
+
+  useEffect(() => {
+    setLocalDisplayMode(timerDisplayMode);
+  }, [timerDisplayMode]);
 
   useEffect(() => {
     localStorage.setItem('direfare_admin_mode', adminMode);
@@ -1212,6 +1229,10 @@ const AdminPanel: React.FC<AdminProps> = ({
             onMarkAsOpened={handleMarkAsOpened}
             role="admin"
             displayLabel={activeEnvelope.label}
+            timerActive={timerActive}
+            timerTimeLeft={timerTimeLeft}
+            timerIsPaused={timerIsPaused}
+            timerDisplayMode={timerDisplayMode}
           />
         )}
 
@@ -1948,6 +1969,37 @@ const AdminPanel: React.FC<AdminProps> = ({
               </h3>
 
               <div className="space-y-6">
+                {/* Proiezione Mode */}
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">
+                    Modalità Proiezione
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setLocalDisplayMode('fullscreen')}
+                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex flex-col items-center gap-1 cursor-pointer text-center ${
+                        localDisplayMode === 'fullscreen'
+                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300 shadow-md shadow-indigo-500/10'
+                          : 'border-slate-800 bg-slate-950 text-slate-450 hover:border-slate-750'
+                      }`}
+                    >
+                      <span>🖥️ Schermo Intero</span>
+                      <span className="text-[9px] text-slate-500 font-normal">Sfoca lo sfondo del gioco</span>
+                    </button>
+                    <button
+                      onClick={() => setLocalDisplayMode('bubble')}
+                      className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all flex flex-col items-center gap-1 cursor-pointer text-center ${
+                        localDisplayMode === 'bubble'
+                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300 shadow-md shadow-indigo-500/10'
+                          : 'border-slate-800 bg-slate-950 text-slate-450 hover:border-slate-750'
+                      }`}
+                    >
+                      <span>💬 Bolla sopra Busta</span>
+                      <span className="text-[9px] text-slate-500 font-normal">Mostra il timer sulla busta</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Preset List */}
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">
@@ -1960,7 +2012,7 @@ const AdminPanel: React.FC<AdminProps> = ({
                         <div key={idx} className="flex items-center bg-slate-950 rounded-xl border border-slate-850 p-1">
                           <button
                             onClick={() => {
-                              startTimer(sec);
+                              startTimer(sec, localDisplayMode);
                               setShowTimerSetup(false);
                             }}
                             className="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-900 rounded-lg transition-all cursor-pointer"
@@ -2005,7 +2057,7 @@ const AdminPanel: React.FC<AdminProps> = ({
                           if (e.key === 'Enter') {
                             const val = parseInt(customSeconds, 10);
                             if (val > 0) {
-                              startTimer(val);
+                              startTimer(val, localDisplayMode);
                               setShowTimerSetup(false);
                             }
                           }
@@ -2049,10 +2101,10 @@ const AdminPanel: React.FC<AdminProps> = ({
                   onClick={() => {
                     const val = parseInt(customSeconds, 10);
                     if (val && val > 0) {
-                      startTimer(val);
+                      startTimer(val, localDisplayMode);
                       setShowTimerSetup(false);
                     } else {
-                      startTimer(30);
+                      startTimer(30, localDisplayMode);
                       setShowTimerSetup(false);
                     }
                   }}

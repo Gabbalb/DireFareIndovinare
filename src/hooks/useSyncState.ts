@@ -91,6 +91,10 @@ export function useSyncState(_role: 'public' | 'admin') {
     return localStorage.getItem('direfare_timer_paused') === 'true';
   });
 
+  const [timerDisplayMode, setTimerDisplayMode] = useState<'fullscreen' | 'bubble'>(() => {
+    return (localStorage.getItem('direfare_timer_display_mode') as any) || 'fullscreen';
+  });
+
   // Reference for BroadcastChannel
   const channelRef = useRef<BroadcastChannel | null>(null);
 
@@ -114,6 +118,7 @@ export function useSyncState(_role: 'public' | 'admin') {
           if (payload.timerDuration !== undefined) setTimerDuration(payload.timerDuration);
           if (payload.timerTimeLeft !== undefined) setTimerTimeLeft(payload.timerTimeLeft);
           if (payload.timerIsPaused !== undefined) setTimerIsPaused(payload.timerIsPaused);
+          if (payload.timerDisplayMode !== undefined) setTimerDisplayMode(payload.timerDisplayMode);
           break;
 
         case 'TRIGGER_OPEN_ENVELOPE':
@@ -160,6 +165,7 @@ export function useSyncState(_role: 'public' | 'admin') {
           if (payload.duration !== undefined) setTimerDuration(payload.duration);
           if (payload.timeLeft !== undefined) setTimerTimeLeft(payload.timeLeft);
           if (payload.isPaused !== undefined) setTimerIsPaused(payload.isPaused);
+          if (payload.displayMode !== undefined) setTimerDisplayMode(payload.displayMode);
           break;
       }
     };
@@ -200,6 +206,9 @@ export function useSyncState(_role: 'public' | 'admin') {
       }
       if (e.key === 'direfare_timer_paused' && e.newValue) {
         setTimerIsPaused(e.newValue === 'true');
+      }
+      if (e.key === 'direfare_timer_display_mode' && e.newValue) {
+        setTimerDisplayMode(e.newValue as any);
       }
     };
 
@@ -382,11 +391,16 @@ export function useSyncState(_role: 'public' | 'admin') {
     stopTimer();
   };
 
-  const startTimer = (duration: number) => {
+  const startTimer = (duration: number, displayMode?: 'fullscreen' | 'bubble') => {
+    const finalMode = displayMode || timerDisplayMode;
     setTimerDuration(duration);
     setTimerTimeLeft(duration);
     setTimerActive(true);
     setTimerIsPaused(false);
+    if (displayMode) {
+      setTimerDisplayMode(displayMode);
+      localStorage.setItem('direfare_timer_display_mode', displayMode);
+    }
     
     localStorage.setItem('direfare_timer_duration', duration.toString());
     localStorage.setItem('direfare_timer_timeleft', duration.toString());
@@ -395,7 +409,7 @@ export function useSyncState(_role: 'public' | 'admin') {
 
     channelRef.current?.postMessage({
       type: 'SYNC_TIMER',
-      payload: { active: true, duration, timeLeft: duration, isPaused: false }
+      payload: { active: true, duration, timeLeft: duration, isPaused: false, displayMode: finalMode }
     });
     
     playSound.zoom(isMuted);
@@ -443,6 +457,8 @@ export function useSyncState(_role: 'public' | 'admin') {
     timerDuration,
     timerTimeLeft,
     timerIsPaused,
+    timerDisplayMode,
+    setTimerDisplayMode,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,

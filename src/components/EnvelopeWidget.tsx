@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Award, Play, X, Check } from 'lucide-react';
+import { Mail, Award, Play, X, Check, Timer } from 'lucide-react';
 import { type Envelope, type Team, type Category } from '../utils/defaults';
 
 interface EnvelopeWidgetProps {
@@ -15,6 +15,10 @@ interface EnvelopeWidgetProps {
   onMarkAsOpened: (id: string, wasSuccessful: boolean, awardPoints: number, winningTeamId: string | null) => void;
   role: 'public' | 'admin';
   displayLabel?: string;
+  timerActive?: boolean;
+  timerTimeLeft?: number;
+  timerIsPaused?: boolean;
+  timerDisplayMode?: 'fullscreen' | 'bubble';
 }
 
 export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
@@ -28,7 +32,11 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   onClose,
   onMarkAsOpened,
   role,
-  displayLabel
+  displayLabel,
+  timerActive = false,
+  timerTimeLeft = 0,
+  timerIsPaused = false,
+  timerDisplayMode = 'fullscreen'
 }) => {
   const [showTeamSelect, setShowTeamSelect] = React.useState(false);
 
@@ -252,6 +260,23 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 >
                   {/* Decorative Frame */}
                   <div className="absolute inset-2 border border-[#d4af37] opacity-60 pointer-events-none" />
+
+                  {/* Timer Bubble (displays inside the sheet when displayMode is bubble) */}
+                  {timerActive && timerDisplayMode === 'bubble' && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="absolute top-2.5 right-4 z-40 bg-slate-950 border border-amber-400/85 text-amber-400 font-sans font-bold px-3 py-1 rounded-full shadow-[0_0_12px_rgba(212,175,55,0.3)] flex items-center gap-1.5 select-none"
+                    >
+                      <Timer size={13} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
+                      <span className="font-mono text-xs tracking-wider">
+                        {timerTimeLeft}s
+                      </span>
+                      {timerIsPaused && (
+                        <span className="text-[8px] text-rose-400 font-black uppercase tracking-wider">Pausa</span>
+                      )}
+                    </motion.div>
+                  )}
 
                   {/* Document Header */}
                   <div className="flex justify-between items-center border-b border-[#d4af37]/30 pb-2 z-10">
