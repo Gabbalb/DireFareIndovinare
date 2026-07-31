@@ -297,6 +297,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                                 transform: `scale(${animationStep === 'photo' ? 1 : (envelope.zoomScale ?? 3)})`,
                                 transition: animationStep === 'photo'
                                   ? 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+                                  : 'none',
+                                animation: animationStep === 'revealed'
+                                  ? 'fadeIn 0.3s ease-out 0.4s both'
                                   : 'none'
                               }}
                             />

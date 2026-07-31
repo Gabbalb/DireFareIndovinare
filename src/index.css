@@ -90,3 +90,8 @@ h1, h2, h3, .font-cinzel {
   display: block !important;
   box-sizing: border-box !important;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
