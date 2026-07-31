@@ -118,8 +118,13 @@ export function useSyncState(_role: 'public' | 'admin') {
 
         case 'TRIGGER_OPEN_ENVELOPE':
           setActiveEnvelopeId(payload.id);
-          setAnimationStep('revealed');
-          playSound.reveal(isMuted);
+          const initialStep = payload.initialStep || 'revealed';
+          setAnimationStep(initialStep);
+          if (initialStep === 'revealed') {
+            playSound.reveal(isMuted);
+          } else {
+            playSound.zoom(isMuted);
+          }
           break;
 
         case 'TRIGGER_STEP':
@@ -297,16 +302,22 @@ export function useSyncState(_role: 'public' | 'admin') {
 
   const openEnvelope = (id: string) => {
     setActiveEnvelopeId(id);
-    setAnimationStep('revealed');
+    const target = envelopes.find(e => e.id === id);
+    const initialStep = (target && target.imageData) ? 'zoomed' : 'revealed';
+    setAnimationStep(initialStep);
     localStorage.setItem('direfare_active_envelope', id);
-    localStorage.setItem('direfare_animation_step', 'revealed');
+    localStorage.setItem('direfare_animation_step', initialStep);
     
     // Broadcast action
     channelRef.current?.postMessage({
       type: 'TRIGGER_OPEN_ENVELOPE',
-      payload: { id }
+      payload: { id, initialStep }
     });
-    playSound.reveal(isMuted);
+    if (initialStep === 'revealed') {
+      playSound.reveal(isMuted);
+    } else {
+      playSound.zoom(isMuted);
+    }
   };
 
   const changeAnimationStep = (step: 'closed' | 'zoomed' | 'opened' | 'photo' | 'revealed') => {
