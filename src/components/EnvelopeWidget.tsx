@@ -193,6 +193,26 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
             {/* Main Interactive Stage */}
             <div className="relative w-full max-w-2xl flex flex-col items-center justify-center z-10 py-12">
               
+              {/* Bubble Timer above the envelope */}
+              <AnimatePresence>
+                {timerActive && timerDisplayMode === 'bubble' && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0, y: 15 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0, opacity: 0, y: 15 }}
+                    className="absolute -top-12 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-6 py-3 rounded-full shadow-[0_0_35px_rgba(212,175,55,0.5)] flex items-center gap-3 select-none"
+                  >
+                    <Timer size={26} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
+                    <span className="font-mono text-4xl md:text-5xl tracking-wider">
+                      {timerTimeLeft}s
+                    </span>
+                    {timerIsPaused && (
+                      <span className="text-xs text-rose-400 font-black uppercase tracking-wider pl-1">Pausa</span>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Outer Envelope Wrapper */}
               <motion.div
                 layoutId={`envelope-wrapper-${envelope.id}`}
@@ -272,23 +292,6 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                 >
                   {/* Decorative Frame */}
                   <div className="absolute inset-2 border border-[#d4af37] opacity-60 pointer-events-none" />
-
-                  {/* Timer Bubble (displays inside the sheet when displayMode is bubble) */}
-                  {timerActive && timerDisplayMode === 'bubble' && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="absolute top-2.5 right-4 z-40 bg-slate-950 border border-amber-400/85 text-amber-400 font-sans font-bold px-3 py-1 rounded-full shadow-[0_0_12px_rgba(212,175,55,0.3)] flex items-center gap-1.5 select-none"
-                    >
-                      <Timer size={13} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
-                      <span className="font-mono text-xs tracking-wider">
-                        {timerTimeLeft}s
-                      </span>
-                      {timerIsPaused && (
-                        <span className="text-[8px] text-rose-400 font-black uppercase tracking-wider">Pausa</span>
-                      )}
-                    </motion.div>
-                  )}
 
                   {/* Document Header */}
                   <div className="flex justify-between items-center border-b border-[#d4af37]/30 pb-2 z-10">
@@ -489,101 +492,6 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     </button>
                   </div>
 
-                  {/* Timer & Sound Popover */}
-                  <div className="relative group">
-                    <button className="px-3.5 py-1.5 bg-slate-900 border border-slate-800 text-amber-400 hover:text-amber-300 font-bold rounded-full text-[11px] transition-all flex items-center gap-1 cursor-pointer">
-                      <Timer size={13} />
-                      <span>Timer & Audio</span>
-                    </button>
-                    
-                    {/* Hover Card */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-slate-950/98 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 text-left">
-                      {/* Timer presets */}
-                      <div className="mb-4">
-                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Gestione Timer</span>
-                        <div className="flex gap-2 mb-2.5">
-                          {[30, 60, 120].map((sec) => (
-                            <button
-                              key={sec}
-                              onClick={() => onStartTimer && onStartTimer(sec)}
-                              className="px-2.5 py-1 bg-slate-900 hover:bg-indigo-600 text-slate-250 hover:text-white border border-slate-800 hover:border-indigo-500 rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
-                            >
-                              {sec}s
-                            </button>
-                          ))}
-                        </div>
-                        {timerActive && (
-                          <div className="flex gap-2">
-                            {timerIsPaused ? (
-                              <button
-                                onClick={onResumeTimer}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
-                              >
-                                Riprendi
-                              </button>
-                            ) : (
-                              <button
-                                onClick={onPauseTimer}
-                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
-                              >
-                                Pausa
-                              </button>
-                            )}
-                            <button
-                              onClick={onStopTimer}
-                              className="px-2.5 py-1 bg-rose-650 hover:bg-rose-550 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 text-center"
-                            >
-                              Stop
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Modalità Proiezione */}
-                      <div className="mb-4 border-t border-slate-900 pt-3">
-                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Proiezione Timer</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('fullscreen')}
-                            className={`px-2 py-1.5 border rounded-lg text-[10px] font-bold transition-all cursor-pointer text-center ${
-                              timerDisplayMode === 'fullscreen'
-                                ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
-                                : 'border-slate-850 bg-slate-900 text-slate-455'
-                            }`}
-                          >
-                            🖥️ Schermo Intero
-                          </button>
-                          <button
-                            onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('bubble')}
-                            className={`px-2 py-1.5 border rounded-lg text-[10px] font-bold transition-all cursor-pointer text-center ${
-                              timerDisplayMode === 'bubble'
-                                ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
-                                : 'border-slate-850 bg-slate-900 text-slate-455'
-                            }`}
-                          >
-                            💬 Bolla
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Sound Effects */}
-                      <div className="border-t border-slate-900 pt-3">
-                        <span className="text-[10px] text-slate-400 font-bold block mb-2 uppercase tracking-wider">Effetti Sonori</span>
-                        <div className="grid grid-cols-3 gap-1.5">
-                          {(['zoom', 'open', 'reveal', 'close', 'tick', 'buzzer'] as const).map((sound) => (
-                            <button
-                              key={sound}
-                              onClick={() => onTriggerSound && onTriggerSound(sound)}
-                              className="px-1.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-350 hover:text-white border border-slate-850 rounded text-[10px] font-semibold transition-all uppercase cursor-pointer text-center truncate"
-                            >
-                              {sound}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
                   {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
                     <div className="flex flex-col items-center gap-3">
@@ -646,25 +554,124 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
               )}
             </div>
 
-            {/* Viewport Floating Scoreboard Bubble */}
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              transition={{ delay: 0.2 }}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/95 backdrop-blur-md border border-slate-805 rounded-full px-5 py-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-3 max-w-[95%] w-max"
-            >
-              {teams.map((team, idx) => (
-                <React.Fragment key={team.id}>
-                  {idx > 0 && <div className="h-4 w-px bg-slate-800 mx-1 shrink-0" />}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} />
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{team.name}:</span>
-                    <span className="text-sm font-black text-slate-100 font-sans">{team.score}</span>
+            {role === 'admin' ? (
+              /* Admin Floating Timer & Sound Console Bar */
+              <motion.div
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-2xl md:rounded-full px-6 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.9)] flex flex-col md:flex-row items-center gap-4 max-w-[95%] w-max text-slate-100"
+              >
+                {/* Timer Section */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">TIMER:</span>
+                  <div className="flex gap-1.5 shrink-0">
+                    {[30, 60, 120].map((sec) => (
+                      <button
+                        key={sec}
+                        onClick={() => onStartTimer && onStartTimer(sec)}
+                        className="px-2.5 py-1 bg-slate-905 border border-slate-800 hover:bg-indigo-650 hover:border-indigo-500 text-slate-200 hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        {sec}s
+                      </button>
+                    ))}
                   </div>
-                </React.Fragment>
-              ))}
-            </motion.div>
+
+                  {timerActive && (
+                    <div className="flex gap-1.5 shrink-0 border-l border-slate-850 pl-2.5 ml-1">
+                      {timerIsPaused ? (
+                        <button
+                          onClick={onResumeTimer}
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-505 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Riprendi
+                        </button>
+                      ) : (
+                        <button
+                          onClick={onPauseTimer}
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-405 text-slate-950 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Pausa
+                        </button>
+                      )}
+                      <button
+                        onClick={onStopTimer}
+                        className="px-2.5 py-1 bg-rose-650 hover:bg-rose-550 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Stop
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="hidden md:block h-6 w-px bg-slate-800" />
+
+                {/* Projection Mode */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">PROIEZIONE:</span>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('fullscreen')}
+                      className={`px-2 py-1 border rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        timerDisplayMode === 'fullscreen'
+                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
+                          : 'border-slate-850 bg-slate-900 text-slate-450 hover:border-slate-800'
+                      }`}
+                    >
+                      🖥️ Schermo Intero
+                    </button>
+                    <button
+                      onClick={() => onSetTimerDisplayMode && onSetTimerDisplayMode('bubble')}
+                      className={`px-2 py-1 border rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        timerDisplayMode === 'bubble'
+                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300'
+                          : 'border-slate-850 bg-slate-900 text-slate-450 hover:border-slate-800'
+                      }`}
+                    >
+                      💬 Bolla
+                    </button>
+                  </div>
+                </div>
+
+                <div className="hidden md:block h-6 w-px bg-slate-800" />
+
+                {/* Sounds Section */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest shrink-0">SUONI:</span>
+                  <div className="flex flex-wrap gap-1.5 shrink-0">
+                    {(['zoom', 'open', 'reveal', 'close', 'tick', 'buzzer'] as const).map((sound) => (
+                      <button
+                        key={sound}
+                        onClick={() => onTriggerSound && onTriggerSound(sound)}
+                        className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-350 hover:text-white border border-slate-850 hover:border-slate-750 rounded text-[10px] font-semibold transition-all uppercase cursor-pointer"
+                      >
+                        {sound}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              /* Public Viewport Floating Scoreboard Bubble */
+              <motion.div
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                transition={{ delay: 0.2 }}
+                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-950/95 backdrop-blur-md border border-slate-805 rounded-full px-5 py-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-3 max-w-[95%] w-max"
+              >
+                {teams.map((team, idx) => (
+                  <React.Fragment key={team.id}>
+                    {idx > 0 && <div className="h-4 w-px bg-slate-800 mx-1 shrink-0" />}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} />
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{team.name}:</span>
+                      <span className="text-sm font-black text-slate-100 font-sans">{team.score}</span>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </motion.div>
+            )}
           </div>
         )}
       </AnimatePresence>
