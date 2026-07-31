@@ -200,14 +200,26 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     initial={{ scale: 0, opacity: 0, y: 15 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0, opacity: 0, y: 15 }}
-                    className="absolute -top-28 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-7 py-3.5 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.65)] flex items-center gap-3.5 select-none"
+                    className={
+                      role === 'admin'
+                        ? "absolute top-4 right-4 md:top-1/2 md:-right-28 md:-translate-y-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.5)] flex items-center gap-2 select-none"
+                        : "absolute -top-36 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-7 py-3.5 rounded-full shadow-[0_0_45px_rgba(212,175,55,0.65)] flex items-center gap-3.5 select-none"
+                    }
                   >
-                    <Timer size={36} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
-                    <span className="font-mono text-6xl md:text-7xl tracking-wider leading-none">
+                    <Timer 
+                      size={role === 'admin' ? 24 : 36} 
+                      className={timerIsPaused ? '' : 'animate-spin-slow'} 
+                      style={{ animationDuration: '6s' }} 
+                    />
+                    <span className={
+                      role === 'admin'
+                        ? "font-mono text-3xl md:text-4xl tracking-wider leading-none"
+                        : "font-mono text-6xl md:text-7xl tracking-wider leading-none"
+                    }>
                       {timerTimeLeft}s
                     </span>
                     {timerIsPaused && (
-                      <span className="text-sm text-rose-400 font-black uppercase tracking-wider pl-1">Pausa</span>
+                      <span className={role === 'admin' ? "text-[10px] text-rose-400 font-black uppercase tracking-wider pl-0.5" : "text-sm text-rose-400 font-black uppercase tracking-wider pl-1"}>Pausa</span>
                     )}
                   </motion.div>
                 )}
@@ -491,6 +503,33 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                       Avanti &rarr;
                     </button>
                   </div>
+
+                  {/* Top Quick Timer Controls (when active) */}
+                  {timerActive && (
+                    <div className="flex items-center gap-1.5 bg-slate-900/60 p-1 rounded-full border border-slate-800/80">
+                      {timerIsPaused ? (
+                        <button
+                          onClick={onResumeTimer}
+                          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-505 text-white font-bold rounded-full text-[11px] transition-all cursor-pointer"
+                        >
+                          Riprendi
+                        </button>
+                      ) : (
+                        <button
+                          onClick={onPauseTimer}
+                          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-405 text-slate-950 font-bold rounded-full text-[11px] transition-all cursor-pointer"
+                        >
+                          Pausa
+                        </button>
+                      )}
+                      <button
+                        onClick={onStopTimer}
+                        className="px-3.5 py-1.5 bg-rose-650 hover:bg-rose-550 text-white font-bold rounded-full text-[11px] transition-all cursor-pointer"
+                      >
+                        Stop
+                      </button>
+                    </div>
+                  )}
 
                   {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
                   {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (
