@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Award, Play, Eye, X, Check } from 'lucide-react';
+import { Mail, Award, Play, X, Check } from 'lucide-react';
 import { type Envelope, type Team, type Category } from '../utils/defaults';
 
 interface EnvelopeWidgetProps {
@@ -31,6 +31,31 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
   displayLabel
 }) => {
   const [showTeamSelect, setShowTeamSelect] = React.useState(false);
+
+  const steps: ('zoomed' | 'opened' | 'revealed' | 'photo')[] = envelope.imageData 
+    ? ['zoomed', 'opened', 'revealed', 'photo']
+    : ['zoomed', 'opened', 'revealed'];
+
+  const currentIdx = steps.indexOf(animationStep as any);
+
+  const goNext = () => {
+    if (currentIdx < steps.length - 1) {
+      const nextStep = steps[currentIdx + 1];
+      if (nextStep === 'photo') {
+        if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
+          onStepChange(nextStep);
+        }
+      } else {
+        onStepChange(nextStep);
+      }
+    }
+  };
+
+  const goPrev = () => {
+    if (currentIdx > 0) {
+      onStepChange(steps[currentIdx - 1]);
+    }
+  };
 
   React.useEffect(() => {
     if (!isActive) {
@@ -402,43 +427,33 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
 
               {/* ACTION TOOLBAR & STAGE CONTROLLER (visible ONLY for admin) */}
               {role === 'admin' && (
-                <div className="mt-8 flex flex-wrap gap-4 items-center justify-center z-50">
-                  {/* 1. Zoomed, waiting to open */}
-                  {animationStep === 'zoomed' && (
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-wrap gap-3.5 items-center justify-center z-50 bg-slate-950/90 backdrop-blur-md px-6 py-2.5 rounded-full border border-slate-800 shadow-2xl max-w-[95%] w-max">
+                  {/* Step Navigation Controls */}
+                  <div className="flex items-center gap-2 bg-slate-900/60 p-1 rounded-full border border-slate-800/80">
                     <button
-                      onClick={() => onStepChange('opened')}
-                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold font-sans rounded-full flex items-center space-x-2 text-white shadow-lg transition-all"
+                      onClick={goPrev}
+                      disabled={currentIdx <= 0}
+                      className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-850 text-slate-300 font-bold rounded-full text-[11px] transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      <Play size={16} />
-                      <span>Apri Lembo</span>
+                      &larr; Indietro
                     </button>
-                  )}
+                    
+                    <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider px-2 select-none">
+                      {animationStep === 'zoomed' && '1. Sigillato'}
+                      {animationStep === 'opened' && '2. Aperto'}
+                      {animationStep === 'revealed' && (envelope.imageData ? '3. Zoom Foto' : '3. Rivelato')}
+                      {animationStep === 'photo' && '4. Foto Intera'}
+                    </span>
 
-                  {/* 2. Flap is open, waiting to reveal */}
-                  {animationStep === 'opened' && (
                     <button
-                      onClick={() => onStepChange('revealed')}
-                      className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
+                      onClick={goNext}
+                      disabled={currentIdx >= steps.length - 1}
+                      className="px-3.5 py-1.5 bg-indigo-650 hover:bg-indigo-600 disabled:opacity-40 disabled:hover:bg-indigo-650 text-white font-bold rounded-full text-[11px] transition-all flex items-center gap-1 cursor-pointer animate-pulse"
+                      style={{ animationDuration: '2.5s' }}
                     >
-                      <Eye size={16} />
-                      <span>Rivela Contenuto</span>
+                      Avanti &rarr;
                     </button>
-                  )}
-
-                  {/* 2.5 Zoomed photo is shown, waiting to reveal complete photo */}
-                  {animationStep === 'revealed' && envelope.imageData && (
-                    <button
-                      onClick={() => {
-                        if (window.confirm("Sei sicuro di voler rivelare l'immagine completa?")) {
-                          onStepChange('photo');
-                        }
-                      }}
-                      className="px-6 py-2.5 bg-[#d4af37] text-slate-950 hover:bg-amber-300 font-bold font-sans rounded-full flex items-center space-x-2 shadow-lg transition-all animate-bounce"
-                    >
-                      <Eye size={16} />
-                      <span>Mostra Immagine Completa</span>
-                    </button>
-                  )}
+                  </div>
 
                   {/* 3. Revealed (Full Screen Sheet) - Game Master Options (Admin or User action) */}
                   {((animationStep === 'revealed' && !envelope.imageData) || (animationStep === 'photo' && envelope.imageData)) && (

@@ -1632,7 +1632,7 @@ const AdminPanel: React.FC<AdminProps> = ({
                               <input 
                                 type="range" 
                                 min="1.5" 
-                                max="10" 
+                                max="35" 
                                 step="0.1" 
                                 value={envZoomScale}
                                 onChange={(e) => setEnvZoomScale(Number(e.target.value))}
