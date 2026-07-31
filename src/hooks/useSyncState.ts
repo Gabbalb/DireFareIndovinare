@@ -445,6 +445,15 @@ export function useSyncState(_role: 'public' | 'admin') {
     playSound.close(isMuted);
   };
 
+  const updateTimerDisplayMode = (mode: 'fullscreen' | 'bubble') => {
+    setTimerDisplayMode(mode);
+    localStorage.setItem('direfare_timer_display_mode', mode);
+    channelRef.current?.postMessage({
+      type: 'SYNC_TIMER',
+      payload: { displayMode: mode }
+    });
+  };
+
   return {
     teams,
     envelopes,
@@ -458,7 +467,7 @@ export function useSyncState(_role: 'public' | 'admin') {
     timerTimeLeft,
     timerIsPaused,
     timerDisplayMode,
-    setTimerDisplayMode,
+    setTimerDisplayMode: updateTimerDisplayMode,
     updateTeams,
     updateEnvelopes,
     updatePointLevels,

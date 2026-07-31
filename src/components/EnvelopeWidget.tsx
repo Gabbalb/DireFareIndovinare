@@ -200,14 +200,14 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     initial={{ scale: 0, opacity: 0, y: 15 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0, opacity: 0, y: 15 }}
-                    className="absolute -top-12 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-6 py-3 rounded-full shadow-[0_0_35px_rgba(212,175,55,0.5)] flex items-center gap-3 select-none"
+                    className="absolute -top-28 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-7 py-3.5 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.65)] flex items-center gap-3.5 select-none"
                   >
-                    <Timer size={26} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
-                    <span className="font-mono text-4xl md:text-5xl tracking-wider">
+                    <Timer size={36} className={timerIsPaused ? '' : 'animate-spin-slow'} style={{ animationDuration: '6s' }} />
+                    <span className="font-mono text-6xl md:text-7xl tracking-wider leading-none">
                       {timerTimeLeft}s
                     </span>
                     {timerIsPaused && (
-                      <span className="text-xs text-rose-400 font-black uppercase tracking-wider pl-1">Pausa</span>
+                      <span className="text-sm text-rose-400 font-black uppercase tracking-wider pl-1">Pausa</span>
                     )}
                   </motion.div>
                 )}
