@@ -200,12 +200,12 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                 <div key={cat.key} className="flex flex-col items-center space-y-3">
                   {/* Column Header */}
                   <div 
-                    className="w-[25.5vh] text-center py-2.5 px-3 rounded-xl border font-extrabold text-sm tracking-widest uppercase select-none shadow-lg text-white font-cinzel"
+                    className="w-[25.5vh] text-center py-2.5 px-3 rounded-xl border font-black text-sm tracking-widest uppercase select-none shadow-lg font-cinzel"
                     style={{
-                      borderColor: cat.color,
-                      backgroundColor: cat.color,
-                      boxShadow: `0 4px 20px ${cat.color}40`,
-                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      borderColor: '#f59e0b',
+                      backgroundColor: '#020617',
+                      color: '#fbbf24',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
                     }}
                   >
                     {cat.name}
