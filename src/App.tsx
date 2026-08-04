@@ -224,18 +224,18 @@ const PublicProjectionView: React.FC<PublicProps> = ({
       </header>
 
       {/* Main Grid View */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 flex flex-col justify-between">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-4 flex flex-col justify-between">
         
         {/* Envelopes Grid Display sorted in vertical columns per category */}
-        <div className="flex-1 flex flex-col justify-center my-6">
-          <div className="flex flex-wrap justify-center gap-6 lg:gap-8 items-start">
+        <div className="flex-1 flex flex-col justify-center my-4">
+          <div className="grid grid-cols-3 gap-5 lg:gap-6 max-w-5xl mx-auto w-full items-start">
             {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
                 .sort((a, b) => a.points - b.points);
 
               return (
-                <div key={cat.key} className="w-full sm:w-[260px] md:w-[300px] lg:w-[320px] flex flex-col space-y-4 md:space-y-6">
+                <div key={cat.key} className="flex flex-col space-y-3 lg:space-y-4">
                   {/* Column Header */}
                   <div 
                     className="text-center py-3 px-4 rounded-xl border font-bold text-sm md:text-base tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
@@ -250,7 +250,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                   </div>
 
                   {/* Vertical Stack */}
-                  <div className="flex flex-col space-y-4 lg:space-y-6">
+                  <div className="flex flex-col space-y-3 lg:space-y-4">
                     {catEnvelopes.map((env, idx) => {
                       const isActive = activeEnvelopeId === env.id;
                       return (

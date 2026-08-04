@@ -137,9 +137,9 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
         <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
           {/* Points at the top instead of name */}
           <div className="text-center w-full pt-1 flex justify-center items-center">
-            <div className={`flex items-center space-x-1.5 ${envelope.isOpened ? 'text-slate-500' : 'text-amber-200 bg-black/20 px-3.5 py-1 rounded-full border border-amber-300/10 shadow-inner'}`}>
-              <Award size={30} className={envelope.isOpened ? "" : "animate-pulse"} />
-              <span className="text-xs md:text-5xl font-black tracking-widest uppercase">{envelope.points} Pt</span>
+            <div className={`flex items-center space-x-1 ${envelope.isOpened ? 'text-slate-500' : 'text-amber-200 bg-black/20 px-2.5 py-0.5 rounded-full border border-amber-300/10 shadow-inner'}`}>
+              <Award size={20} className={envelope.isOpened ? "" : "animate-pulse"} />
+              <span className="text-sm md:text-3xl font-black tracking-wider uppercase">{envelope.points} Pt</span>
             </div>
           </div>
 
