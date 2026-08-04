@@ -197,10 +197,10 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                 .sort((a, b) => a.points - b.points);
 
               return (
-                <div key={cat.key} className="flex flex-col space-y-3">
+                <div key={cat.key} className="flex flex-col items-center space-y-3">
                   {/* Column Header */}
                   <div 
-                    className="text-center py-2 px-3 rounded-xl border font-bold text-sm tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
+                    className="w-[22.5vh] text-center py-2 px-3 rounded-xl border font-bold text-xs tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
                     style={{
                       borderColor: `${cat.color}40`,
                       color: cat.color,
@@ -212,7 +212,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                   </div>
 
                   {/* Vertical Stack */}
-                  <div className="flex flex-col space-y-3">
+                  <div className="flex flex-col space-y-3 items-center">
                     {catEnvelopes.map((env, idx) => {
                       const isActive = activeEnvelopeId === env.id;
                       return (

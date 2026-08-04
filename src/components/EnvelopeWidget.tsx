@@ -101,7 +101,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
       <motion.div
         layoutId={`envelope-wrapper-${envelope.id}`}
         onClick={handleEnvelopeClick}
-        className={`relative w-full aspect-[3/2] rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
+        className={`relative ${role === 'public' ? 'h-[15vh] w-[22.5vh]' : 'w-full aspect-[3/2]'} rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
           envelope.isOpened 
             ? 'opacity-40 grayscale border-slate-700 bg-slate-900/50 cursor-not-allowed' 
             : 'border-white/10'
@@ -134,12 +134,12 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
         />
 
         {/* Content container */}
-        <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
+        <div className="absolute inset-0 flex flex-col justify-between p-3 z-10">
           {/* Points at the top instead of name */}
           <div className="text-center w-full pt-1 flex justify-center items-center">
             <div className={`flex items-center space-x-1 ${envelope.isOpened ? 'text-slate-500' : 'text-amber-200 bg-black/20 px-2.5 py-0.5 rounded-full border border-amber-300/10 shadow-inner'}`}>
-              <Award size={20} className={envelope.isOpened ? "" : "animate-pulse"} />
-              <span className="text-sm md:text-3xl font-black tracking-wider uppercase">{envelope.points} Pt</span>
+              <Award className={`${envelope.isOpened ? "" : "animate-pulse"} ${role === 'public' ? 'w-[2.5vh] h-[2.5vh]' : 'w-5 h-5'}`} />
+              <span className={`font-black tracking-wider uppercase ${role === 'public' ? 'text-[2.8vh]' : 'text-sm md:text-3xl'}`}>{envelope.points} Pt</span>
             </div>
           </div>
 
@@ -147,12 +147,12 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
           <div className="h-10 pointer-events-none" />
 
           {/* Team Name at the bottom instead of points */}
-          <div className={`flex justify-center items-center text-xs border-t pt-3 ${
+          <div className={`flex justify-center items-center text-xs border-t pt-2 ${
             envelope.isOpened 
               ? 'text-slate-500 border-slate-800/80' 
               : 'text-white/80 border-white/15'
           }`}>
-            <h3 className="text-xs md:text-sm font-bold tracking-wider text-slate-100 uppercase truncate drop-shadow">
+            <h3 className={`font-bold tracking-wider text-slate-100 uppercase truncate drop-shadow ${role === 'public' ? 'text-[1.8vh]' : 'text-xs md:text-sm'}`}>
               {categoryName}
             </h3>
           </div>
