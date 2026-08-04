@@ -186,21 +186,21 @@ const PublicProjectionView: React.FC<PublicProps> = ({
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Main Grid View */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-6 flex flex-col justify-center overflow-hidden">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-4 flex flex-col justify-center overflow-hidden">
         
         {/* Envelopes Grid Display sorted in vertical columns per category */}
         <div className="flex-1 flex flex-col justify-center my-auto overflow-hidden">
-          <div className="grid grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto w-full items-start">
+          <div className="grid grid-cols-3 gap-4 lg:gap-5 max-w-3xl mx-auto w-full items-start">
             {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
                 .sort((a, b) => a.points - b.points);
 
               return (
-                <div key={cat.key} className="flex flex-col space-y-4">
+                <div key={cat.key} className="flex flex-col space-y-3">
                   {/* Column Header */}
                   <div 
-                    className="text-center py-3 px-4 rounded-xl border font-bold text-sm md:text-base tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
+                    className="text-center py-2 px-3 rounded-xl border font-bold text-sm tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
                     style={{
                       borderColor: `${cat.color}40`,
                       color: cat.color,
@@ -212,7 +212,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                   </div>
 
                   {/* Vertical Stack */}
-                  <div className="flex flex-col space-y-4">
+                  <div className="flex flex-col space-y-3">
                     {catEnvelopes.map((env, idx) => {
                       const isActive = activeEnvelopeId === env.id;
                       return (
