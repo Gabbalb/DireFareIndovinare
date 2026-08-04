@@ -190,7 +190,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
         
         {/* Envelopes Grid Display sorted in vertical columns per category */}
         <div className="flex-1 flex flex-col justify-center my-auto overflow-hidden">
-          <div className="grid grid-cols-3 gap-4 lg:gap-5 max-w-3xl mx-auto w-full items-start">
+          <div className="grid grid-cols-3 gap-4 lg:gap-5 max-w-4xl mx-auto w-full items-start">
             {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
@@ -200,12 +200,12 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                 <div key={cat.key} className="flex flex-col items-center space-y-3">
                   {/* Column Header */}
                   <div 
-                    className="w-[22.5vh] text-center py-2 px-3 rounded-xl border font-bold text-xs tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
+                    className="w-[25.5vh] text-center py-2.5 px-3 rounded-xl border font-extrabold text-sm tracking-widest uppercase select-none shadow-lg text-white font-cinzel"
                     style={{
-                      borderColor: `${cat.color}40`,
-                      color: cat.color,
-                      backgroundColor: `${cat.color}12`,
-                      boxShadow: `0 4px 15px ${cat.color}08`
+                      borderColor: cat.color,
+                      backgroundColor: cat.color,
+                      boxShadow: `0 4px 20px ${cat.color}40`,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                     }}
                   >
                     {cat.name}

@@ -101,7 +101,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
       <motion.div
         layoutId={`envelope-wrapper-${envelope.id}`}
         onClick={handleEnvelopeClick}
-        className={`relative ${role === 'public' ? 'h-[15vh] w-[22.5vh]' : 'w-full aspect-[3/2]'} rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
+        className={`relative ${role === 'public' ? 'h-[17vh] w-[25.5vh]' : 'w-full aspect-[3/2]'} rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
           envelope.isOpened 
             ? 'opacity-40 grayscale border-slate-700 bg-slate-900/50 cursor-not-allowed' 
             : 'border-white/10'
@@ -159,7 +159,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
         </div>
 
         {/* Wax Seal */}
-        {!envelope.isOpened && (
+        {!envelope.isOpened && role !== 'public' && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
             <motion.div 
               animate={{ scale: [1, 1.05, 1] }}
