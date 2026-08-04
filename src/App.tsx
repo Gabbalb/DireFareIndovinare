@@ -21,6 +21,15 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Update document title dynamically to help OBS distinguish windows
+  useEffect(() => {
+    if (route === '#/admin') {
+      document.title = 'DireFare - REGIA';
+    } else {
+      document.title = 'DireFare - SCHERMO PUBBLICO';
+    }
+  }, [route]);
+
   // Sync state across views
   const {
     teams,
