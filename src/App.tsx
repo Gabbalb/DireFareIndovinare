@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Volume2, VolumeX, Shield, Users, Mail, RotateCcw, 
-  Plus, Trash2, Check, X, Tv, Settings, Sparkles, Edit2, RefreshCw, Award,
+  Volume2, VolumeX, Shield, Mail, RotateCcw, 
+  Plus, Trash2, Check, X, Tv, Settings, Edit2, RefreshCw, Award,
   ChevronUp, ChevronDown, Play, Pause, Square, Timer
 } from 'lucide-react';
 import { useSyncState } from './hooks/useSyncState';
@@ -167,7 +167,6 @@ const PublicProjectionView: React.FC<PublicProps> = ({
   categories,
   activeEnvelopeId,
   animationStep,
-  isMuted,
   timerActive,
   timerDuration,
   timerTimeLeft,
@@ -176,7 +175,6 @@ const PublicProjectionView: React.FC<PublicProps> = ({
   openEnvelope,
   closeEnvelope,
   changeAnimationStep,
-  toggleMute,
   handleMarkAsOpened
 }) => {
   return (
@@ -187,58 +185,22 @@ const PublicProjectionView: React.FC<PublicProps> = ({
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Elegant Header */}
-      <header className="relative w-full border-b border-slate-800/80 bg-slate-950/40 backdrop-blur-md px-6 py-2.5 flex justify-between items-center z-30 shadow-lg">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-[#d4af37] flex items-center justify-center shadow-lg border border-amber-300/30">
-            <Sparkles className="text-slate-950" size={18} />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-black font-cinzel text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-amber-400 leading-none">
-              DIREFARE SHOW
-            </h1>
-            <p className="text-[9px] md:text-[10px] font-bold tracking-widest text-indigo-400 uppercase mt-0.5">
-              Il Gioco delle Buste a Squadre
-            </p>
-          </div>
-        </div>
-
-        {/* Global Sound and Action Toolbar */}
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={toggleMute}
-            className="p-2 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white transition-all shadow-md cursor-pointer"
-            title={isMuted ? "Attiva Audio" : "Disattiva Audio"}
-          >
-            {isMuted ? <VolumeX size={16} className="text-rose-400" /> : <Volume2 size={16} className="text-emerald-400" />}
-          </button>
-          
-          <a 
-            href="#/admin"
-            className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white rounded-full text-[11px] font-semibold tracking-wider transition-all cursor-pointer"
-          >
-            <Settings size={12} />
-            <span>CONSOLE REGIA</span>
-          </a>
-        </div>
-      </header>
-
       {/* Main Grid View */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-2 flex flex-col justify-between overflow-hidden">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-6 flex flex-col justify-center overflow-hidden">
         
         {/* Envelopes Grid Display sorted in vertical columns per category */}
-        <div className="flex-1 flex flex-col justify-center my-2 overflow-hidden">
-          <div className="grid grid-cols-3 gap-4 lg:gap-5 max-w-5xl mx-auto w-full items-start">
+        <div className="flex-1 flex flex-col justify-center my-auto overflow-hidden">
+          <div className="grid grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto w-full items-start">
             {categories.map(cat => {
               const catEnvelopes = envelopes
                 .filter(env => env.category === cat.key)
                 .sort((a, b) => a.points - b.points);
 
               return (
-                <div key={cat.key} className="flex flex-col space-y-2">
+                <div key={cat.key} className="flex flex-col space-y-4">
                   {/* Column Header */}
                   <div 
-                    className="text-center py-2 px-3 rounded-lg border font-bold text-xs md:text-sm tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
+                    className="text-center py-3 px-4 rounded-xl border font-bold text-sm md:text-base tracking-widest uppercase select-none shadow-md backdrop-blur-sm"
                     style={{
                       borderColor: `${cat.color}40`,
                       color: cat.color,
@@ -250,7 +212,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
                   </div>
 
                   {/* Vertical Stack */}
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col space-y-4">
                     {catEnvelopes.map((env, idx) => {
                       const isActive = activeEnvelopeId === env.id;
                       return (
@@ -280,51 +242,7 @@ const PublicProjectionView: React.FC<PublicProps> = ({
             })}
           </div>
         </div>
-
-        {/* Real-time Scoreboard Display */}
-        <section className="mt-3 border border-slate-800/80 bg-slate-950/60 backdrop-blur-md rounded-xl p-3.5 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-indigo-500 via-[#d4af37] to-pink-500" />
-          <h2 className="text-center font-cinzel text-sm tracking-wider text-slate-300 mb-3 flex items-center justify-center gap-2">
-            <Users size={14} className="text-indigo-400" />
-            CLASSIFICA SQUADRE IN TEMPO REALE
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {teams.map((team, idx) => (
-              <motion.div
-                key={team.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="relative overflow-hidden p-2 px-3 rounded-lg border bg-slate-900/40 flex items-center justify-between transition-all"
-                style={{ borderColor: `${team.color}30` }}
-              >
-                <div 
-                  className="absolute -right-6 -bottom-6 w-16 h-16 rounded-full opacity-10 blur-xl"
-                  style={{ backgroundColor: team.color }}
-                />
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: team.color }} />
-                  <span className="font-bold tracking-wide text-slate-200 text-xs md:text-sm truncate max-w-[100px]">
-                    {team.name}
-                  </span>
-                </div>
-                <div className="text-right z-10">
-                  <span className="text-lg md:text-xl font-black text-slate-100 font-sans leading-none">
-                    {team.score}
-                  </span>
-                  <span className="text-[8px] font-bold text-slate-400 block">Punti</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
       </main>
-
-      {/* TV Screen Projection Tip Footer */}
-      <footer className="w-full text-center text-slate-500 text-[10px] font-semibold border-t border-slate-900/80 pt-2 px-6 flex justify-between max-w-6xl mx-auto">
-        <p>&copy; DireFare Show - Perfetto per proiettori / Smart TV</p>
-        <p className="hidden md:block">Apri questa finestra a schermo intero (F11)</p>
-      </footer>
     </div>
     <CountdownOverlay
       timerActive={timerActive && timerDisplayMode === 'fullscreen'}

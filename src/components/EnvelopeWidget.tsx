@@ -101,7 +101,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
       <motion.div
         layoutId={`envelope-wrapper-${envelope.id}`}
         onClick={handleEnvelopeClick}
-        className={`relative w-full ${role === 'public' ? 'aspect-[1.85/1]' : 'aspect-[3/2]'} rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
+        className={`relative w-full aspect-[3/2] rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl border transition-all duration-300 transform hover:-translate-y-1 ${
           envelope.isOpened 
             ? 'opacity-40 grayscale border-slate-700 bg-slate-900/50 cursor-not-allowed' 
             : 'border-white/10'
@@ -144,7 +144,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
           </div>
 
           {/* Empty center for the wax seal */}
-          <div className={`${role === 'public' ? 'h-3' : 'h-10'} pointer-events-none`} />
+          <div className="h-10 pointer-events-none" />
 
           {/* Team Name at the bottom instead of points */}
           <div className={`flex justify-center items-center text-xs border-t pt-3 ${
