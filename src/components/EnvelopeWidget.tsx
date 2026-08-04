@@ -203,7 +203,7 @@ export const EnvelopeWidget: React.FC<EnvelopeWidgetProps> = ({
                     className={
                       role === 'admin'
                         ? "absolute top-4 right-4 md:top-1/2 md:-right-28 md:-translate-y-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.5)] flex items-center gap-2 select-none"
-                        : "absolute -top-36 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-7 py-3.5 rounded-full shadow-[0_0_45px_rgba(212,175,55,0.65)] flex items-center gap-3.5 select-none"
+                        : "fixed top-6 left-1/2 -translate-x-1/2 z-[110] bg-slate-950/95 backdrop-blur-md border-2 border-amber-400/90 text-amber-400 font-sans font-black px-7 py-3.5 rounded-full shadow-[0_0_45px_rgba(212,175,55,0.65)] flex items-center gap-3.5 select-none"
                     }
                   >
                     <Timer 
